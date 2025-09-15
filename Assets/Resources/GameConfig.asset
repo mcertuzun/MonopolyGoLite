@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c7b04a61c410de408403b464e341a5d, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  sideLength: 12
+  tileSize: 1.8
+  tiles:
+  - name: Start
+    type: 0
+    price: 100
+    baseRent: 50
+    taxAmount: 10
+  - name: A
+    type: 1
+    price: 100
+    baseRent: 50
+    taxAmount: 10
+  - name: B
+    type: 1
+    price: 100
+    baseRent: 50
+    taxAmount: 10
+  - name: C
+    type: 3
+    price: 100
+    baseRent: 50
+    taxAmount: 10
+  startingCash: 1500
+  goPayout: 200
+  jailTileIndex: 6
+  seed: 12345
+  ticksPerSecond: 30
+  targetWidth: 1080
+  targetHeight: 1920
+  cameraMargin: 1
+  initialCharges: 3
+  chargeCap: 20
+  chargeInterval: 3
+  propertyColor: {r: 0.2, g: 0.62, b: 0.86, a: 1}
+  taxColor: {r: 0.86, g: 0.31, b: 0.31, a: 1}
+  chestColor: {r: 0.47, g: 0.86, b: 0.47, a: 1}
+  goColor: {r: 0.95, g: 0.84, b: 0.34, a: 1}
+  jailColor: {r: 0.75, g: 0.55, b: 0.35, a: 1}
+  gotoJailColor: {r: 0.6, g: 0.35, b: 0.75, a: 1}
+  tokenA: {r: 0.2, g: 0.6, b: 1, a: 1}
+  tokenB: {r: 1, g: 0.5, b: 0.2, a: 1}
+  rollColor: {r: 0.15, g: 0.8, b: 0.35, a: 1}
+  rollDisabled: {r: 0.35, g: 0.35, b: 0.35, a: 1}
+  multColor: {r: 0.15, g: 0.35, b: 0.9, a: 1}

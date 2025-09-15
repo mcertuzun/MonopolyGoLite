@@ -1,0 +1,101 @@
+{
+  "sideLength": 12.0,
+  "tileSize": 1.8,
+  "tiles": [
+    {
+      "name": "GO",
+      "type": 0,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 0
+    },
+    {
+      "name": "Mediterranean Ave",
+      "type": 1,
+      "price": 60,
+      "baseRent": 2,
+      "taxAmount": 0
+    },
+    {
+      "name": "Community Chest",
+      "type": 3,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 0
+    },
+    {
+      "name": "Baltic Ave",
+      "type": 1,
+      "price": 60,
+      "baseRent": 4,
+      "taxAmount": 0
+    },
+    {
+      "name": "Income Tax",
+      "type": 2,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 200
+    },
+    {
+      "name": "Reading Railroad",
+      "type": 1,
+      "price": 200,
+      "baseRent": 25,
+      "taxAmount": 0
+    },
+    {
+      "name": "Jail",
+      "type": 5,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 0
+    },
+    {
+      "name": "Oriental Ave",
+      "type": 1,
+      "price": 100,
+      "baseRent": 6,
+      "taxAmount": 0
+    },
+    {
+      "name": "Chance",
+      "type": 3,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 0
+    },
+    {
+      "name": "Vermont Ave",
+      "type": 1,
+      "price": 100,
+      "baseRent": 6,
+      "taxAmount": 0
+    },
+    {
+      "name": "Connecticut Ave",
+      "type": 1,
+      "price": 120,
+      "baseRent": 8,
+      "taxAmount": 0
+    },
+    {
+      "name": "Go To Jail",
+      "type": 4,
+      "price": 0,
+      "baseRent": 0,
+      "taxAmount": 0
+    }
+  ],
+  "startingCash": 1500,
+  "goPayout": 200,
+  "jailTileIndex": 6,
+  "seed": 12345,
+  "ticksPerSecond": 30,
+  "targetWidth": 1080,
+  "targetHeight": 1920,
+  "cameraMargin": 1.0,
+  "initialCharges": 3,
+  "chargeCap": 20,
+  "chargeInterval": 3.0
+}
