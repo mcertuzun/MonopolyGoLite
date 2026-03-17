@@ -119,7 +119,7 @@ namespace MonopolyLite
                 go.transform.SetParent(boardRoot, false);
                 go.transform.localPosition = posArr[i];
                 SpriteRenderer sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = Sprites.Square(64, ColorForTile(t.type));
+                sr.sprite = Sprites.Square(64, ColorForTile(t));
                 go.transform.localScale = new Vector3(config.tileSize, config.tileSize, 1);
                 GameObject lgo = new("Label");
                 lgo.transform.SetParent(go.transform, false);

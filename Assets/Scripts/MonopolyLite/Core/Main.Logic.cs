@@ -156,18 +156,37 @@ namespace MonopolyLite
             }
         }
 
-        private Color ColorForTile(TileType tt)
+        private Color ColorForTile(TileDef tile)
         {
-            switch (tt)
+            switch (tile.type)
             {
-                case TileType.Property: return config.propertyColor;
+                case TileType.Property:
+                    return ColorForGroup(tile.colorGroup);
                 case TileType.Tax: return config.taxColor;
-                case TileType.Chance: return config.chestColor;
-                case TileType.CommunityChest: return config.chestColor;
+                case TileType.Chance: return config.chanceColor;
+                case TileType.CommunityChest: return config.communityChestColor;
                 case TileType.Go: return config.goColor;
                 case TileType.Jail: return config.jailColor;
                 case TileType.GoToJail: return config.gotoJailColor;
+                case TileType.Railroad: return config.railroadColor;
+                case TileType.Utility: return config.utilityColor;
                 default: return Color.white;
+            }
+        }
+
+        private Color ColorForGroup(ColorGroup g)
+        {
+            switch (g)
+            {
+                case ColorGroup.Brown: return config.brownGroup;
+                case ColorGroup.LightBlue: return config.lightBlueGroup;
+                case ColorGroup.Pink: return config.pinkGroup;
+                case ColorGroup.Orange: return config.orangeGroup;
+                case ColorGroup.Red: return config.redGroup;
+                case ColorGroup.Yellow: return config.yellowGroup;
+                case ColorGroup.Green: return config.greenGroup;
+                case ColorGroup.Blue: return config.blueGroup;
+                default: return config.propertyColor;
             }
         }
     }
