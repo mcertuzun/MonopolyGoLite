@@ -81,12 +81,28 @@ namespace MonopolyLite
         public int initialCharges = 3;
         public int chargeCap = 20;
         public float chargeInterval = 3f;
+        public int[] railroadRentTiers = { 25, 50, 100, 200 };
+        public int[] utilityRentFactors = { 4, 10 };
+        public CardDef[] chanceCards;
+        public CardDef[] communityChestCards;
         public Color propertyColor = new(0.20f, 0.62f, 0.86f);
         public Color taxColor = new(0.86f, 0.31f, 0.31f);
         public Color chestColor = new(0.47f, 0.86f, 0.47f);
         public Color goColor = new(0.95f, 0.84f, 0.34f);
         public Color jailColor = new(0.75f, 0.55f, 0.35f);
         public Color gotoJailColor = new(0.60f, 0.35f, 0.75f);
+        public Color railroadColor = new(0.50f, 0.50f, 0.50f);
+        public Color utilityColor = new(0.85f, 0.75f, 0.35f);
+        public Color chanceColor = new(0.95f, 0.55f, 0.20f);
+        public Color communityChestColor = new(0.30f, 0.70f, 0.90f);
+        public Color brownGroup = new(0.55f, 0.33f, 0.16f);
+        public Color lightBlueGroup = new(0.60f, 0.82f, 0.95f);
+        public Color pinkGroup = new(0.85f, 0.30f, 0.65f);
+        public Color orangeGroup = new(0.95f, 0.60f, 0.15f);
+        public Color redGroup = new(0.90f, 0.20f, 0.20f);
+        public Color yellowGroup = new(0.95f, 0.90f, 0.25f);
+        public Color greenGroup = new(0.15f, 0.70f, 0.30f);
+        public Color blueGroup = new(0.10f, 0.20f, 0.70f);
         public Color tokenA = new(0.2f, 0.6f, 1f);
         public Color tokenB = new(1f, 0.5f, 0.2f);
         public Color rollColor = new(0.15f, 0.8f, 0.35f);
@@ -105,6 +121,10 @@ namespace MonopolyLite
         public float cameraMargin;
         public int initialCharges, chargeCap;
         public float chargeInterval;
+        public int[] railroadRentTiers;
+        public int[] utilityRentFactors;
+        public CardDef[] chanceCards;
+        public CardDef[] communityChestCards;
     }
 
     public static class ConfigLoader
@@ -133,6 +153,10 @@ namespace MonopolyLite
                 so.initialCharges = j.initialCharges;
                 so.chargeCap = j.chargeCap;
                 so.chargeInterval = j.chargeInterval;
+                if (j.railroadRentTiers != null) so.railroadRentTiers = j.railroadRentTiers;
+                if (j.utilityRentFactors != null) so.utilityRentFactors = j.utilityRentFactors;
+                so.chanceCards = j.chanceCards;
+                so.communityChestCards = j.communityChestCards;
                 return so;
             }
             catch
@@ -148,28 +172,66 @@ namespace MonopolyLite
             { new()
               { name = "GO", type = TileType.Go },
               new()
-              { name = "Mediterranean Ave", type = TileType.Property, price = 60, baseRent = 2 },
+              { name = "Mediterranean Ave", type = TileType.Property, price = 60, colorGroup = ColorGroup.Brown, rentTable = new[]{ 2, 10, 30, 90, 160, 250 }, houseCost = 50, hotelCost = 50 },
               new()
               { name = "Community Chest", type = TileType.CommunityChest },
               new()
-              { name = "Baltic Ave", type = TileType.Property, price = 60, baseRent = 4 },
+              { name = "Baltic Ave", type = TileType.Property, price = 60, colorGroup = ColorGroup.Brown, rentTable = new[]{ 4, 20, 60, 180, 320, 450 }, houseCost = 50, hotelCost = 50 },
               new()
               { name = "Income Tax", type = TileType.Tax, taxAmount = 200 },
               new()
-              { name = "Reading Railroad", type = TileType.Property, price = 200, baseRent = 25 },
+              { name = "Reading Railroad", type = TileType.Railroad, price = 200 },
               new()
               { name = "Jail", type = TileType.Jail },
               new()
-              { name = "Oriental Ave", type = TileType.Property, price = 100, baseRent = 6 },
+              { name = "Oriental Ave", type = TileType.Property, price = 100, colorGroup = ColorGroup.LightBlue, rentTable = new[]{ 6, 30, 90, 270, 400, 550 }, houseCost = 50, hotelCost = 50 },
               new()
               { name = "Chance", type = TileType.Chance },
               new()
-              { name = "Vermont Ave", type = TileType.Property, price = 100, baseRent = 6 },
+              { name = "Vermont Ave", type = TileType.Property, price = 100, colorGroup = ColorGroup.LightBlue, rentTable = new[]{ 6, 30, 90, 270, 400, 550 }, houseCost = 50, hotelCost = 50 },
               new()
-              { name = "Connecticut Ave", type = TileType.Property, price = 120, baseRent = 8 },
+              { name = "Connecticut Ave", type = TileType.Property, price = 120, colorGroup = ColorGroup.LightBlue, rentTable = new[]{ 8, 40, 100, 300, 450, 600 }, houseCost = 50, hotelCost = 50 },
               new()
               { name = "Go To Jail", type = TileType.GoToJail } };
+            so.chanceCards = DefaultChanceCards();
+            so.communityChestCards = DefaultCommunityChestCards();
             return so;
+        }
+
+        private static CardDef[] DefaultChanceCards()
+        {
+            return new CardDef[]
+            {
+                new() { type = CardType.GainMoney, description = "Bank pays you dividend of $50", amount = 50 },
+                new() { type = CardType.GoToTile, description = "Advance to GO", tileIndex = 0 },
+                new() { type = CardType.GoToJail, description = "Go directly to Jail" },
+                new() { type = CardType.LoseMoney, description = "Speeding fine $15", amount = 15 },
+                new() { type = CardType.GainMoney, description = "Building loan matures — collect $150", amount = 150 },
+                new() { type = CardType.LoseMoney, description = "Pay poor tax of $15", amount = 15 },
+                new() { type = CardType.RepairCosts, description = "Make general repairs: $25/house, $100/hotel", perHouse = 25, perHotel = 100 },
+                new() { type = CardType.GainPerProperty, description = "Collect $50 per property owned", amount = 50 },
+                new() { type = CardType.GainMoney, description = "Your investment matures — collect $100", amount = 100 },
+                new() { type = CardType.LoseMoney, description = "Pay hospital fees of $100", amount = 100 }
+            };
+        }
+
+        private static CardDef[] DefaultCommunityChestCards()
+        {
+            return new CardDef[]
+            {
+                new() { type = CardType.GainMoney, description = "Bank error in your favor — collect $200", amount = 200 },
+                new() { type = CardType.LoseMoney, description = "Doctor's fees — pay $50", amount = 50 },
+                new() { type = CardType.GainMoney, description = "From sale of stock you get $50", amount = 50 },
+                new() { type = CardType.GoToJail, description = "Go to Jail" },
+                new() { type = CardType.GainMoney, description = "Holiday fund matures — receive $100", amount = 100 },
+                new() { type = CardType.GainMoney, description = "Income tax refund — collect $20", amount = 20 },
+                new() { type = CardType.GainMoney, description = "Life insurance matures — collect $100", amount = 100 },
+                new() { type = CardType.LoseMoney, description = "Pay school fees of $50", amount = 50 },
+                new() { type = CardType.GainMoney, description = "Receive $25 consultancy fee", amount = 25 },
+                new() { type = CardType.RepairCosts, description = "Street repairs: $40/house, $115/hotel", perHouse = 40, perHotel = 115 },
+                new() { type = CardType.GainMoney, description = "Beauty contest — collect $10", amount = 10 },
+                new() { type = CardType.GainMoney, description = "You inherit $100", amount = 100 }
+            };
         }
     }
 }
