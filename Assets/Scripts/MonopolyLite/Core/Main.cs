@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -32,6 +33,18 @@ namespace MonopolyLite
         private TextMeshPro[] tokenLabels;
         private SpriteRenderer[] tokenSprites;
         private Vector3[] worldTilePositions;
+
+        private int[] developmentLevels;
+        private List<int> chanceDeckOrder, communityChestDeckOrder;
+        private int chanceDrawIndex, communityChestDrawIndex;
+        private HashSet<int> declinedProperties;
+        private bool gameOver;
+        private bool playerWon;
+        private int totalTurns;
+        private int totalMoneyEarned;
+        private int pendingBuyTileIndex = -1;
+        private float cardRevealTimer;
+        private string lastCardDescription = "";
 
         private void Awake()
         {
@@ -100,6 +113,33 @@ namespace MonopolyLite
             diceChargeTimer = 0f;
             diceChargeInterval = config.chargeInterval;
             gainMultiplier = 1;
+
+            developmentLevels = new int[config.tiles.Length];
+            declinedProperties = new HashSet<int>();
+            gameOver = false;
+            playerWon = false;
+            totalTurns = 0;
+            totalMoneyEarned = 0;
+            pendingBuyTileIndex = -1;
+            cardRevealTimer = 0f;
+            lastCardDescription = "";
+
+            chanceDeckOrder = ShuffleDeck(config.chanceCards != null ? config.chanceCards.Length : 0);
+            communityChestDeckOrder = ShuffleDeck(config.communityChestCards != null ? config.communityChestCards.Length : 0);
+            chanceDrawIndex = 0;
+            communityChestDrawIndex = 0;
+        }
+
+        private List<int> ShuffleDeck(int count)
+        {
+            List<int> deck = new(count);
+            for (int i = 0; i < count; i++) deck.Add(i);
+            for (int i = count - 1; i > 0; i--)
+            {
+                int j = rng.Next(0, i + 1);
+                (deck[i], deck[j]) = (deck[j], deck[i]);
+            }
+            return deck;
         }
 
         private void BuildBoard()
