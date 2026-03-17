@@ -8,9 +8,46 @@ namespace MonopolyLite
         Go,
         Property,
         Tax,
-        Chest,
+        Chance,
+        CommunityChest,
         GoToJail,
-        Jail
+        Jail,
+        Railroad,
+        Utility
+    }
+
+    public enum ColorGroup
+    {
+        None,
+        Brown,
+        LightBlue,
+        Pink,
+        Orange,
+        Red,
+        Yellow,
+        Green,
+        Blue
+    }
+
+    public enum CardType
+    {
+        GainMoney,
+        LoseMoney,
+        GoToTile,
+        GoToJail,
+        RepairCosts,
+        GainPerProperty
+    }
+
+    [Serializable]
+    public struct CardDef
+    {
+        public CardType type;
+        public string description;
+        public int amount;
+        public int tileIndex;
+        public int perHouse;
+        public int perHotel;
     }
 
     [Serializable]
@@ -21,6 +58,10 @@ namespace MonopolyLite
         public int price;
         public int baseRent;
         public int taxAmount;
+        public ColorGroup colorGroup;
+        public int[] rentTable;
+        public int houseCost;
+        public int hotelCost;
     }
 
     [CreateAssetMenu(fileName = "GameConfig", menuName = "MonopolyLite/GameConfig")]
@@ -109,7 +150,7 @@ namespace MonopolyLite
               new()
               { name = "Mediterranean Ave", type = TileType.Property, price = 60, baseRent = 2 },
               new()
-              { name = "Community Chest", type = TileType.Chest },
+              { name = "Community Chest", type = TileType.CommunityChest },
               new()
               { name = "Baltic Ave", type = TileType.Property, price = 60, baseRent = 4 },
               new()
@@ -121,7 +162,7 @@ namespace MonopolyLite
               new()
               { name = "Oriental Ave", type = TileType.Property, price = 100, baseRent = 6 },
               new()
-              { name = "Chance", type = TileType.Chest },
+              { name = "Chance", type = TileType.Chance },
               new()
               { name = "Vermont Ave", type = TileType.Property, price = 100, baseRent = 6 },
               new()

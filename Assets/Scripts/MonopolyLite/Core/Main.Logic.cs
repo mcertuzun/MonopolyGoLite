@@ -77,7 +77,8 @@ namespace MonopolyLite
 
                     break;
                 case TileType.Tax: cash[p] -= t.taxAmount; break;
-                case TileType.Chest:
+                case TileType.Chance:
+                case TileType.CommunityChest:
                     int delta = rng.Next(-50, 101);
                     if (delta > 0) delta *= gainMultiplier;
                     cash[p] += delta;
@@ -161,7 +162,8 @@ namespace MonopolyLite
             {
                 case TileType.Property: return config.propertyColor;
                 case TileType.Tax: return config.taxColor;
-                case TileType.Chest: return config.chestColor;
+                case TileType.Chance: return config.chestColor;
+                case TileType.CommunityChest: return config.chestColor;
                 case TileType.Go: return config.goColor;
                 case TileType.Jail: return config.jailColor;
                 case TileType.GoToJail: return config.gotoJailColor;
