@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace MonopolyLite
@@ -16,6 +17,8 @@ namespace MonopolyLite
 
         private void TryRoll()
         {
+            if (pendingBuyTileIndex >= 0) return;
+            if (gameOver) return;
             if (diceCharges <= 0) return;
             if (jailTurns[currentPlayer] > 0)
             {
@@ -35,8 +38,10 @@ namespace MonopolyLite
             bool passed = prev + steps >= config.tiles.Length;
             pos[currentPlayer] = next;
             if (passed) cash[currentPlayer] += config.goPayout * gainMultiplier;
+            if (passed) totalMoneyEarned += config.goPayout * gainMultiplier;
             ResolveLanding(currentPlayer);
-            if (dbl)
+            bool movedByCard = pos[currentPlayer] != next;
+            if (dbl && !movedByCard)
             {
                 doublesInRow[currentPlayer]++;
                 if (doublesInRow[currentPlayer] >= 3)
@@ -60,6 +65,7 @@ namespace MonopolyLite
             switch (t.type)
             {
                 case TileType.Property:
+                {
                     int o = tileOwner[pos[p]];
                     if (o == -1)
                     {
@@ -71,18 +77,72 @@ namespace MonopolyLite
                     }
                     else if (o != p)
                     {
-                        cash[p] -= t.baseRent;
-                        cash[o] += t.baseRent;
+                        int rent = GetPropertyRent(pos[p]);
+                        if (OwnsFullGroup(o, t.colorGroup) && developmentLevels[pos[p]] == 0)
+                            rent *= 2;
+                        cash[p] -= rent;
+                        cash[o] += rent;
                     }
-
                     break;
+                }
                 case TileType.Tax: cash[p] -= t.taxAmount; break;
-                case TileType.Chance:
-                case TileType.CommunityChest:
-                    int delta = rng.Next(-50, 101);
-                    if (delta > 0) delta *= gainMultiplier;
-                    cash[p] += delta;
+                case TileType.Railroad:
+                {
+                    int ro = tileOwner[pos[p]];
+                    if (ro == -1)
+                    {
+                        if (cash[p] >= t.price)
+                        {
+                            cash[p] -= t.price;
+                            tileOwner[pos[p]] = p;
+                        }
+                    }
+                    else if (ro != p)
+                    {
+                        int owned = CountOwnedByType(ro, TileType.Railroad);
+                        int rent = config.railroadRentTiers[Mathf.Clamp(owned - 1, 0, config.railroadRentTiers.Length - 1)];
+                        cash[p] -= rent;
+                        cash[ro] += rent;
+                    }
                     break;
+                }
+                case TileType.Utility:
+                {
+                    int uo = tileOwner[pos[p]];
+                    if (uo == -1)
+                    {
+                        if (cash[p] >= t.price)
+                        {
+                            cash[p] -= t.price;
+                            tileOwner[pos[p]] = p;
+                        }
+                    }
+                    else if (uo != p)
+                    {
+                        int owned = CountOwnedByType(uo, TileType.Utility);
+                        int factor = config.utilityRentFactors[Mathf.Clamp(owned - 1, 0, config.utilityRentFactors.Length - 1)];
+                        int rent = (lastD1 + lastD2) * factor;
+                        cash[p] -= rent;
+                        cash[uo] += rent;
+                    }
+                    break;
+                }
+                case TileType.Chance:
+                {
+                    CardDef card = DrawCard(true);
+                    lastCardDescription = "CHANCE: " + card.description;
+                    cardRevealTimer = 2f;
+                    ResolveCard(p, card);
+                    break;
+                }
+                case TileType.CommunityChest:
+                {
+                    CardDef card = DrawCard(false);
+                    lastCardDescription = "CHEST: " + card.description;
+                    cardRevealTimer = 2f;
+                    ResolveCard(p, card);
+                    break;
+                }
                 case TileType.GoToJail: SendToJail(p); break;
             }
         }
@@ -97,6 +157,141 @@ namespace MonopolyLite
             pos[p] = Mathf.Clamp(config.jailTileIndex, 0, config.tiles.Length - 1);
             jailTurns[p] = 3;
             doublesInRow[p] = 0;
+        }
+
+        private int CountOwnedInGroup(int player, ColorGroup group)
+        {
+            int count = 0;
+            for (int i = 0; i < config.tiles.Length; i++)
+            {
+                if (config.tiles[i].type == TileType.Property &&
+                    config.tiles[i].colorGroup == group &&
+                    tileOwner[i] == player)
+                    count++;
+            }
+            return count;
+        }
+
+        private int CountTilesInGroup(ColorGroup group)
+        {
+            int count = 0;
+            for (int i = 0; i < config.tiles.Length; i++)
+            {
+                if (config.tiles[i].type == TileType.Property && config.tiles[i].colorGroup == group)
+                    count++;
+            }
+            return count;
+        }
+
+        private bool OwnsFullGroup(int player, ColorGroup group)
+        {
+            return group != ColorGroup.None && CountOwnedInGroup(player, group) == CountTilesInGroup(group);
+        }
+
+        private int GetPropertyRent(int tileIndex)
+        {
+            TileDef t = config.tiles[tileIndex];
+            int level = developmentLevels[tileIndex];
+            if (t.rentTable != null && t.rentTable.Length > level)
+                return t.rentTable[level];
+            return t.baseRent;
+        }
+
+        private int CountOwnedByType(int player, TileType type)
+        {
+            int count = 0;
+            for (int i = 0; i < config.tiles.Length; i++)
+            {
+                if (config.tiles[i].type == type && tileOwner[i] == player)
+                    count++;
+            }
+            return count;
+        }
+
+        private CardDef DrawCard(bool isChance)
+        {
+            CardDef[] deck = isChance ? config.chanceCards : config.communityChestCards;
+            List<int> order = isChance ? chanceDeckOrder : communityChestDeckOrder;
+            ref int drawIndex = ref (isChance ? ref chanceDrawIndex : ref communityChestDrawIndex);
+
+            if (deck == null || deck.Length == 0)
+                return new CardDef { type = CardType.GainMoney, amount = 0, description = "Empty deck" };
+
+            if (drawIndex >= order.Count)
+            {
+                for (int i = order.Count - 1; i > 0; i--)
+                {
+                    int j = rng.Next(0, i + 1);
+                    (order[i], order[j]) = (order[j], order[i]);
+                }
+                drawIndex = 0;
+            }
+
+            CardDef card = deck[order[drawIndex]];
+            drawIndex++;
+            return card;
+        }
+
+        private void ResolveCard(int p, CardDef card)
+        {
+            switch (card.type)
+            {
+                case CardType.GainMoney:
+                {
+                    int gain = card.amount * gainMultiplier;
+                    cash[p] += gain;
+                    totalMoneyEarned += gain;
+                    break;
+                }
+                case CardType.LoseMoney:
+                    cash[p] -= card.amount;
+                    break;
+                case CardType.GoToTile:
+                {
+                    int from = pos[p];
+                    int to = card.tileIndex;
+                    if (to < from)
+                    {
+                        cash[p] += config.goPayout * gainMultiplier;
+                        totalMoneyEarned += config.goPayout * gainMultiplier;
+                    }
+                    pos[p] = to;
+                    ResolveLanding(p);
+                    break;
+                }
+                case CardType.GoToJail:
+                    SendToJail(p);
+                    break;
+                case CardType.RepairCosts:
+                {
+                    int cost = 0;
+                    for (int i = 0; i < developmentLevels.Length; i++)
+                    {
+                        if (tileOwner[i] == p)
+                        {
+                            int level = developmentLevels[i];
+                            if (level >= 5)
+                                cost += card.perHotel;
+                            else if (level > 0)
+                                cost += card.perHouse * level;
+                        }
+                    }
+                    cash[p] -= cost;
+                    break;
+                }
+                case CardType.GainPerProperty:
+                {
+                    int propCount = 0;
+                    for (int i = 0; i < tileOwner.Length; i++)
+                    {
+                        if (tileOwner[i] == p) propCount++;
+                    }
+                    int total = card.amount * propCount * gainMultiplier;
+                    cash[p] += total;
+                    totalMoneyEarned += total;
+                    break;
+                }
+            }
         }
 
         private void UpdateTokens()
