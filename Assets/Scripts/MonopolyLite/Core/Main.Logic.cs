@@ -47,13 +47,13 @@ namespace MonopolyLite
                 if (doublesInRow[currentPlayer] >= 3)
                 {
                     SendToJail(currentPlayer);
-                    EndTurn();
+                    if (pendingBuyTileIndex < 0) EndTurn();
                 }
             }
             else
             {
                 doublesInRow[currentPlayer] = 0;
-                EndTurn();
+                if (pendingBuyTileIndex < 0) EndTurn();
             }
 
             UpdateDiceLabels(d1, d2);
@@ -250,7 +250,10 @@ namespace MonopolyLite
                         totalMoneyEarned += config.goPayout * gainMultiplier;
                     }
                     pos[p] = to;
-                    ResolveLanding(p);
+                    // Only resolve landing for non-card tiles to prevent infinite recursion
+                    TileType destType = config.tiles[to].type;
+                    if (destType != TileType.Chance && destType != TileType.CommunityChest)
+                        ResolveLanding(p);
                     break;
                 }
                 case CardType.GoToJail:

@@ -114,11 +114,13 @@ namespace MonopolyLite
                     {
                         BuyProperty(currentPlayer, pendingBuyTileIndex);
                         pendingBuyTileIndex = -1;
+                        EndTurn();
                     }
                     else if (Vector2.Distance(tap, new Vector2(declineBtn.position.x, declineBtn.position.y)) <= 1.2f)
                     {
                         DeclineProperty(pendingBuyTileIndex);
                         pendingBuyTileIndex = -1;
+                        EndTurn();
                     }
                 }
                 else
