@@ -1,95 +1,50 @@
 {
-  "sideLength": 12.0,
-  "tileSize": 1.8,
+  "sideLength": 20.0,
+  "tileSize": 1.2,
   "tiles": [
-    {
-      "name": "GO",
-      "type": 0,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 0
-    },
-    {
-      "name": "Mediterranean Ave",
-      "type": 1,
-      "price": 60,
-      "baseRent": 2,
-      "taxAmount": 0
-    },
-    {
-      "name": "Community Chest",
-      "type": 3,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 0
-    },
-    {
-      "name": "Baltic Ave",
-      "type": 1,
-      "price": 60,
-      "baseRent": 4,
-      "taxAmount": 0
-    },
-    {
-      "name": "Income Tax",
-      "type": 2,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 200
-    },
-    {
-      "name": "Reading Railroad",
-      "type": 1,
-      "price": 200,
-      "baseRent": 25,
-      "taxAmount": 0
-    },
-    {
-      "name": "Jail",
-      "type": 5,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 0
-    },
-    {
-      "name": "Oriental Ave",
-      "type": 1,
-      "price": 100,
-      "baseRent": 6,
-      "taxAmount": 0
-    },
-    {
-      "name": "Chance",
-      "type": 3,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 0
-    },
-    {
-      "name": "Vermont Ave",
-      "type": 1,
-      "price": 100,
-      "baseRent": 6,
-      "taxAmount": 0
-    },
-    {
-      "name": "Connecticut Ave",
-      "type": 1,
-      "price": 120,
-      "baseRent": 8,
-      "taxAmount": 0
-    },
-    {
-      "name": "Go To Jail",
-      "type": 4,
-      "price": 0,
-      "baseRent": 0,
-      "taxAmount": 0
-    }
+    { "name": "GO", "type": 0, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Mediterranean Ave", "type": 1, "price": 60, "baseRent": 2, "taxAmount": 0, "colorGroup": 1, "rentTable": [2,10,30,90,160,250], "houseCost": 50, "hotelCost": 50 },
+    { "name": "Community Chest", "type": 4, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Baltic Ave", "type": 1, "price": 60, "baseRent": 4, "taxAmount": 0, "colorGroup": 1, "rentTable": [4,20,60,180,320,450], "houseCost": 50, "hotelCost": 50 },
+    { "name": "Income Tax", "type": 2, "price": 0, "baseRent": 0, "taxAmount": 200, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Reading Railroad", "type": 7, "price": 200, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Oriental Ave", "type": 1, "price": 100, "baseRent": 6, "taxAmount": 0, "colorGroup": 2, "rentTable": [6,30,90,270,400,550], "houseCost": 50, "hotelCost": 50 },
+    { "name": "Chance", "type": 3, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Vermont Ave", "type": 1, "price": 100, "baseRent": 6, "taxAmount": 0, "colorGroup": 2, "rentTable": [6,30,90,270,400,550], "houseCost": 50, "hotelCost": 50 },
+    { "name": "Connecticut Ave", "type": 1, "price": 120, "baseRent": 8, "taxAmount": 0, "colorGroup": 2, "rentTable": [8,40,100,300,450,600], "houseCost": 50, "hotelCost": 50 },
+    { "name": "Jail", "type": 6, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "St. Charles Place", "type": 1, "price": 140, "baseRent": 10, "taxAmount": 0, "colorGroup": 3, "rentTable": [10,50,150,450,625,750], "houseCost": 100, "hotelCost": 100 },
+    { "name": "Electric Company", "type": 8, "price": 150, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "States Ave", "type": 1, "price": 140, "baseRent": 10, "taxAmount": 0, "colorGroup": 3, "rentTable": [10,50,150,450,625,750], "houseCost": 100, "hotelCost": 100 },
+    { "name": "Virginia Ave", "type": 1, "price": 160, "baseRent": 12, "taxAmount": 0, "colorGroup": 3, "rentTable": [12,60,180,500,700,900], "houseCost": 100, "hotelCost": 100 },
+    { "name": "Pennsylvania Railroad", "type": 7, "price": 200, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "St. James Place", "type": 1, "price": 180, "baseRent": 14, "taxAmount": 0, "colorGroup": 4, "rentTable": [14,70,200,550,750,950], "houseCost": 100, "hotelCost": 100 },
+    { "name": "Community Chest", "type": 4, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Tennessee Ave", "type": 1, "price": 180, "baseRent": 14, "taxAmount": 0, "colorGroup": 4, "rentTable": [14,70,200,550,750,950], "houseCost": 100, "hotelCost": 100 },
+    { "name": "New York Ave", "type": 1, "price": 200, "baseRent": 16, "taxAmount": 0, "colorGroup": 4, "rentTable": [16,80,220,600,800,1000], "houseCost": 100, "hotelCost": 100 },
+    { "name": "Go To Jail", "type": 5, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Kentucky Ave", "type": 1, "price": 220, "baseRent": 18, "taxAmount": 0, "colorGroup": 5, "rentTable": [18,90,250,700,875,1050], "houseCost": 150, "hotelCost": 150 },
+    { "name": "Chance", "type": 3, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Indiana Ave", "type": 1, "price": 220, "baseRent": 18, "taxAmount": 0, "colorGroup": 5, "rentTable": [18,90,250,700,875,1050], "houseCost": 150, "hotelCost": 150 },
+    { "name": "Illinois Ave", "type": 1, "price": 240, "baseRent": 20, "taxAmount": 0, "colorGroup": 5, "rentTable": [20,100,300,750,925,1100], "houseCost": 150, "hotelCost": 150 },
+    { "name": "B&O Railroad", "type": 7, "price": 200, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Atlantic Ave", "type": 1, "price": 260, "baseRent": 22, "taxAmount": 0, "colorGroup": 6, "rentTable": [22,110,330,800,975,1150], "houseCost": 150, "hotelCost": 150 },
+    { "name": "Ventnor Ave", "type": 1, "price": 260, "baseRent": 22, "taxAmount": 0, "colorGroup": 6, "rentTable": [22,110,330,800,975,1150], "houseCost": 150, "hotelCost": 150 },
+    { "name": "Water Works", "type": 8, "price": 150, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Marvin Gardens", "type": 1, "price": 280, "baseRent": 24, "taxAmount": 0, "colorGroup": 6, "rentTable": [24,120,360,850,1025,1200], "houseCost": 150, "hotelCost": 150 },
+    { "name": "Pacific Ave", "type": 1, "price": 300, "baseRent": 26, "taxAmount": 0, "colorGroup": 7, "rentTable": [26,130,390,900,1100,1275], "houseCost": 200, "hotelCost": 200 },
+    { "name": "North Carolina Ave", "type": 1, "price": 300, "baseRent": 26, "taxAmount": 0, "colorGroup": 7, "rentTable": [26,130,390,900,1100,1275], "houseCost": 200, "hotelCost": 200 },
+    { "name": "Community Chest", "type": 4, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Pennsylvania Ave", "type": 1, "price": 320, "baseRent": 28, "taxAmount": 0, "colorGroup": 7, "rentTable": [28,150,450,1000,1200,1400], "houseCost": 200, "hotelCost": 200 },
+    { "name": "Short Line Railroad", "type": 7, "price": 200, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Chance", "type": 3, "price": 0, "baseRent": 0, "taxAmount": 0, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Park Place", "type": 1, "price": 350, "baseRent": 35, "taxAmount": 0, "colorGroup": 8, "rentTable": [35,175,500,1100,1300,1500], "houseCost": 200, "hotelCost": 200 },
+    { "name": "Luxury Tax", "type": 2, "price": 0, "baseRent": 0, "taxAmount": 100, "colorGroup": 0, "rentTable": [], "houseCost": 0, "hotelCost": 0 },
+    { "name": "Boardwalk", "type": 1, "price": 400, "baseRent": 50, "taxAmount": 0, "colorGroup": 8, "rentTable": [50,200,600,1400,1700,2000], "houseCost": 200, "hotelCost": 200 }
   ],
   "startingCash": 1500,
   "goPayout": 200,
-  "jailTileIndex": 6,
+  "jailTileIndex": 10,
   "seed": 12345,
   "ticksPerSecond": 30,
   "targetWidth": 1080,
@@ -97,5 +52,33 @@
   "cameraMargin": 1.0,
   "initialCharges": 3,
   "chargeCap": 20,
-  "chargeInterval": 3.0
+  "chargeInterval": 3.0,
+  "railroadRentTiers": [25, 50, 100, 200],
+  "utilityRentFactors": [4, 10],
+  "chanceCards": [
+    { "type": 0, "description": "Bank pays you dividend of $50", "amount": 50, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 2, "description": "Advance to GO — collect $200", "amount": 0, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 3, "description": "Go directly to Jail", "amount": 0, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 1, "description": "Speeding fine $15", "amount": 15, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Building loan matures — collect $150", "amount": 150, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 1, "description": "Pay poor tax of $15", "amount": 15, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 4, "description": "Make general repairs: $25/house, $100/hotel", "amount": 0, "tileIndex": 0, "perHouse": 25, "perHotel": 100 },
+    { "type": 5, "description": "Collect $50 per property owned", "amount": 50, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Your investment matures — collect $100", "amount": 100, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 1, "description": "Pay hospital fees of $100", "amount": 100, "tileIndex": 0, "perHouse": 0, "perHotel": 0 }
+  ],
+  "communityChestCards": [
+    { "type": 0, "description": "Bank error in your favor — collect $200", "amount": 200, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 1, "description": "Doctor's fees — pay $50", "amount": 50, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "From sale of stock you get $50", "amount": 50, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 3, "description": "Go to Jail", "amount": 0, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Holiday fund matures — receive $100", "amount": 100, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Income tax refund — collect $20", "amount": 20, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Life insurance matures — collect $100", "amount": 100, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 1, "description": "Pay school fees of $50", "amount": 50, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "Receive $25 consultancy fee", "amount": 25, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 4, "description": "Street repairs: $40/house, $115/hotel", "amount": 0, "tileIndex": 0, "perHouse": 40, "perHotel": 115 },
+    { "type": 0, "description": "Beauty contest — collect $10", "amount": 10, "tileIndex": 0, "perHouse": 0, "perHotel": 0 },
+    { "type": 0, "description": "You inherit $100", "amount": 100, "tileIndex": 0, "perHouse": 0, "perHotel": 0 }
+  ]
 }

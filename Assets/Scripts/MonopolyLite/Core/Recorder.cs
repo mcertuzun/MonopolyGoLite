@@ -8,7 +8,10 @@ namespace MonopolyLite
     public enum CmdType
     {
         Roll,
-        ToggleMultiplier
+        ToggleMultiplier,
+        BuyProperty,
+        DeclineProperty,
+        BuildHouse
     }
 
     [Serializable]
@@ -82,10 +85,14 @@ namespace MonopolyLite
         private GameConfigJson ToJson(GameConfig c)
         {
             return new GameConfigJson
-            { sideLength = c.sideLength, tileSize = c.tileSize, tiles = c.tiles,
-              startingCash = c.startingCash, goPayout = c.goPayout, jailTileIndex = c.jailTileIndex,
-              seed = c.seed, ticksPerSecond = c.ticksPerSecond, targetWidth = c.targetWidth, targetHeight = c.targetHeight,
-              cameraMargin = c.cameraMargin, initialCharges = c.initialCharges, chargeCap = c.chargeCap, chargeInterval = c.chargeInterval };
+            {
+                sideLength = c.sideLength, tileSize = c.tileSize, tiles = c.tiles,
+                startingCash = c.startingCash, goPayout = c.goPayout, jailTileIndex = c.jailTileIndex,
+                seed = c.seed, ticksPerSecond = c.ticksPerSecond, targetWidth = c.targetWidth, targetHeight = c.targetHeight,
+                cameraMargin = c.cameraMargin, initialCharges = c.initialCharges, chargeCap = c.chargeCap, chargeInterval = c.chargeInterval,
+                railroadRentTiers = c.railroadRentTiers, utilityRentFactors = c.utilityRentFactors,
+                chanceCards = c.chanceCards, communityChestCards = c.communityChestCards
+            };
         }
     }
 }
