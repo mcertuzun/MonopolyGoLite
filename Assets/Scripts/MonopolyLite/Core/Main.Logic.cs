@@ -69,39 +69,34 @@ namespace MonopolyLite
                     int o = tileOwner[pos[p]];
                     if (o == -1)
                     {
-                        if (cash[p] >= t.price)
-                        {
-                            cash[p] -= t.price;
-                            tileOwner[pos[p]] = p;
-                        }
+                        int price = GetPropertyPrice(pos[p]);
+                        if (cash[p] >= price)
+                            pendingBuyTileIndex = pos[p];
                     }
                     else if (o != p)
                     {
                         int rent = GetPropertyRent(pos[p]);
                         if (OwnsFullGroup(o, t.colorGroup) && developmentLevels[pos[p]] == 0)
                             rent *= 2;
-                        cash[p] -= rent;
+                        if (!TryDeductCash(p, rent)) break;
                         cash[o] += rent;
                     }
                     break;
                 }
-                case TileType.Tax: cash[p] -= t.taxAmount; break;
+                case TileType.Tax: TryDeductCash(p, t.taxAmount); break;
                 case TileType.Railroad:
                 {
                     int ro = tileOwner[pos[p]];
                     if (ro == -1)
                     {
                         if (cash[p] >= t.price)
-                        {
-                            cash[p] -= t.price;
-                            tileOwner[pos[p]] = p;
-                        }
+                            pendingBuyTileIndex = pos[p];
                     }
                     else if (ro != p)
                     {
                         int owned = CountOwnedByType(ro, TileType.Railroad);
                         int rent = config.railroadRentTiers[Mathf.Clamp(owned - 1, 0, config.railroadRentTiers.Length - 1)];
-                        cash[p] -= rent;
+                        if (!TryDeductCash(p, rent)) break;
                         cash[ro] += rent;
                     }
                     break;
@@ -112,17 +107,14 @@ namespace MonopolyLite
                     if (uo == -1)
                     {
                         if (cash[p] >= t.price)
-                        {
-                            cash[p] -= t.price;
-                            tileOwner[pos[p]] = p;
-                        }
+                            pendingBuyTileIndex = pos[p];
                     }
                     else if (uo != p)
                     {
                         int owned = CountOwnedByType(uo, TileType.Utility);
                         int factor = config.utilityRentFactors[Mathf.Clamp(owned - 1, 0, config.utilityRentFactors.Length - 1)];
                         int rent = (lastD1 + lastD2) * factor;
-                        cash[p] -= rent;
+                        if (!TryDeductCash(p, rent)) break;
                         cash[uo] += rent;
                     }
                     break;
@@ -145,10 +137,12 @@ namespace MonopolyLite
                 }
                 case TileType.GoToJail: SendToJail(p); break;
             }
+            if (!gameOver) CheckWinLose(p);
         }
 
         private void EndTurn()
         {
+            totalTurns++;
             currentPlayer = (currentPlayer + 1) % playerCount;
         }
 
@@ -244,7 +238,7 @@ namespace MonopolyLite
                     break;
                 }
                 case CardType.LoseMoney:
-                    cash[p] -= card.amount;
+                    TryDeductCash(p, card.amount);
                     break;
                 case CardType.GoToTile:
                 {
@@ -276,7 +270,7 @@ namespace MonopolyLite
                                 cost += card.perHouse * level;
                         }
                     }
-                    cash[p] -= cost;
+                    TryDeductCash(p, cost);
                     break;
                 }
                 case CardType.GainPerProperty:
@@ -292,6 +286,108 @@ namespace MonopolyLite
                     break;
                 }
             }
+        }
+
+        // Task 10: House/hotel building logic
+        private bool CanBuildOnTile(int player, int tileIndex)
+        {
+            TileDef t = config.tiles[tileIndex];
+            if (t.type != TileType.Property) return false;
+            if (tileOwner[tileIndex] != player) return false;
+            if (!OwnsFullGroup(player, t.colorGroup)) return false;
+            int level = developmentLevels[tileIndex];
+            if (level >= 5) return false;
+            int cost = level < 4 ? t.houseCost : t.hotelCost;
+            return cash[player] >= cost;
+        }
+
+        private void BuildHouse(int player, int tileIndex)
+        {
+            if (!CanBuildOnTile(player, tileIndex)) return;
+            TileDef t = config.tiles[tileIndex];
+            int level = developmentLevels[tileIndex];
+            int cost = level < 4 ? t.houseCost : t.hotelCost;
+            if (!TryDeductCash(player, cost)) return;
+            developmentLevels[tileIndex]++;
+        }
+
+        private List<int> GetBuildableTiles(int player)
+        {
+            List<int> result = new();
+            for (int i = 0; i < config.tiles.Length; i++)
+            {
+                if (CanBuildOnTile(player, i)) result.Add(i);
+            }
+            return result;
+        }
+
+        // Task 11: Decline-to-discount logic
+        private int GetPropertyPrice(int tileIndex)
+        {
+            int basePrice = config.tiles[tileIndex].price;
+            if (declinedProperties.Contains(tileIndex))
+                return Mathf.RoundToInt(basePrice * 0.8f);
+            return basePrice;
+        }
+
+        private void BuyProperty(int player, int tileIndex)
+        {
+            int price = GetPropertyPrice(tileIndex);
+            if (cash[player] < price) return;
+            if (!TryDeductCash(player, price)) return;
+            tileOwner[tileIndex] = player;
+            CheckWinLose(player);
+            declinedProperties.Remove(tileIndex);
+        }
+
+        private void DeclineProperty(int tileIndex)
+        {
+            if (declinedProperties.Contains(tileIndex))
+                declinedProperties.Remove(tileIndex);
+            else
+                declinedProperties.Add(tileIndex);
+        }
+
+        // Task 12: Win/lose condition checks
+        private void CheckWinLose(int player)
+        {
+            if (cash[player] < 0)
+            {
+                gameOver = true;
+                playerWon = false;
+                return;
+            }
+
+            bool ownsAll = true;
+            for (int i = 0; i < config.tiles.Length; i++)
+            {
+                TileType tt = config.tiles[i].type;
+                if (tt == TileType.Property || tt == TileType.Railroad || tt == TileType.Utility)
+                {
+                    if (tileOwner[i] != player)
+                    {
+                        ownsAll = false;
+                        break;
+                    }
+                }
+            }
+            if (ownsAll)
+            {
+                gameOver = true;
+                playerWon = true;
+            }
+        }
+
+        private bool TryDeductCash(int player, int amount)
+        {
+            if (cash[player] < amount)
+            {
+                gameOver = true;
+                playerWon = false;
+                return false;
+            }
+            cash[player] -= amount;
+            return true;
         }
 
         private void UpdateTokens()
