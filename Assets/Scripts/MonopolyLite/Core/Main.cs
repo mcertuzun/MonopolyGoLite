@@ -28,6 +28,11 @@ namespace MonopolyLite
         private SpriteRenderer rollBtnSR;
         private TextMeshPro[] statsLines;
         private Transform statsRoot;
+        private Transform buyBtn, declineBtn, buildBtn;
+        private TextMeshPro buyBtnLabel, declineBtnLabel, buildBtnLabel;
+        private SpriteRenderer buyBtnSR, declineBtnSR, buildBtnSR;
+        private TextMeshPro cardRevealText;
+        private TextMeshPro gameOverText;
         private TextMeshPro[] tileLabels;
         private SpriteRenderer[] tileSprites;
         private TextMeshPro[] tokenLabels;
@@ -255,6 +260,60 @@ namespace MonopolyLite
                 t.alignment = TextAlignmentOptions.Left;
                 statsLines[i] = t;
             }
+
+            // Buy button
+            buyBtn = new GameObject("BuyButton").transform;
+            buyBtn.SetParent(transform, false);
+            buyBtnSR = buyBtn.gameObject.AddComponent<SpriteRenderer>();
+            buyBtnSR.sprite = Sprites.Square(96, new Color(0.15f, 0.75f, 0.30f));
+            buyBtn.localScale = Vector3.one * 1.2f;
+            buyBtnLabel = new GameObject("Label").AddComponent<TextMeshPro>();
+            buyBtnLabel.transform.SetParent(buyBtn, false);
+            buyBtnLabel.alignment = TextAlignmentOptions.Center;
+            buyBtnLabel.fontSize = 3;
+            buyBtn.gameObject.SetActive(false);
+
+            // Decline button
+            declineBtn = new GameObject("DeclineButton").transform;
+            declineBtn.SetParent(transform, false);
+            declineBtnSR = declineBtn.gameObject.AddComponent<SpriteRenderer>();
+            declineBtnSR.sprite = Sprites.Square(96, new Color(0.85f, 0.25f, 0.25f));
+            declineBtn.localScale = Vector3.one * 1.2f;
+            declineBtnLabel = new GameObject("Label").AddComponent<TextMeshPro>();
+            declineBtnLabel.transform.SetParent(declineBtn, false);
+            declineBtnLabel.alignment = TextAlignmentOptions.Center;
+            declineBtnLabel.fontSize = 3;
+            declineBtn.gameObject.SetActive(false);
+
+            // Build button
+            buildBtn = new GameObject("BuildButton").transform;
+            buildBtn.SetParent(transform, false);
+            buildBtnSR = buildBtn.gameObject.AddComponent<SpriteRenderer>();
+            buildBtnSR.sprite = Sprites.Square(96, new Color(0.90f, 0.70f, 0.15f));
+            buildBtn.localScale = Vector3.one * 1.0f;
+            buildBtnLabel = new GameObject("Label").AddComponent<TextMeshPro>();
+            buildBtnLabel.transform.SetParent(buildBtn, false);
+            buildBtnLabel.alignment = TextAlignmentOptions.Center;
+            buildBtnLabel.fontSize = 2.5f;
+            buildBtn.gameObject.SetActive(false);
+
+            // Card reveal text
+            GameObject cardGo = new("CardReveal");
+            cardGo.transform.SetParent(transform, false);
+            cardRevealText = cardGo.AddComponent<TextMeshPro>();
+            cardRevealText.fontSize = 3;
+            cardRevealText.alignment = TextAlignmentOptions.Center;
+            cardRevealText.rectTransform.sizeDelta = new Vector2(10, 2);
+            cardRevealText.gameObject.SetActive(false);
+
+            // Game over text
+            GameObject goGo = new("GameOver");
+            goGo.transform.SetParent(transform, false);
+            gameOverText = goGo.AddComponent<TextMeshPro>();
+            gameOverText.fontSize = 4;
+            gameOverText.alignment = TextAlignmentOptions.Center;
+            gameOverText.rectTransform.sizeDelta = new Vector2(14, 8);
+            gameOverText.gameObject.SetActive(false);
         }
     }
 }

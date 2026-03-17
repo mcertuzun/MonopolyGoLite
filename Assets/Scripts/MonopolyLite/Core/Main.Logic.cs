@@ -443,7 +443,13 @@ namespace MonopolyLite
             for (int p = 0; p < playerCount; p++)
             {
                 int tile = pos[p];
-                statsLines[2 + p].text = $"P{p} ${cash[p]} T{tile} {config.tiles[tile].name}";
+                int devTotal = 0;
+                int propsOwned = 0;
+                for (int i = 0; i < config.tiles.Length; i++)
+                {
+                    if (tileOwner[i] == p) { propsOwned++; devTotal += developmentLevels[i]; }
+                }
+                statsLines[2 + p].text = $"P{p} ${cash[p]} Props:{propsOwned} Dev:{devTotal} T{tile}";
             }
         }
 
