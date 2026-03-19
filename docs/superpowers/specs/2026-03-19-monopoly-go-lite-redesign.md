@@ -60,8 +60,12 @@ This spec **fully replaces** the prior design (`2026-03-16-monopoly-gameplay-mec
 | `Assets/Scripts/Systems/` | **KEEP** | Core infrastructure (GameSystem, Services, Logger, Yield) |
 | `Assets/Scripts/Systems/Services/` | **EVALUATE** | Keep shells, rewrite internals per new design |
 | `Assets/Scripts/Pool/` | **KEEP** | Extend into PoolManager reusable system |
+| `Assets/Scripts/Extensions.cs` | **KEEP** | Utility extensions, still useful |
 | `Assets/Resources/gameconfig.json` | **REWRITE** | New board-based JSON schema |
 | `feature/gameplay-expansion` branch | **ARCHIVE** | Do not merge; keep as reference only |
+| Existing local save data | **WIPE** | Clean rewrite; no migration path from classic Monopoly saves |
+
+> **Note**: Cloud Functions specification (endpoint signatures, request/response formats) will be a separate document created before Phase 3 implementation begins.
 
 ### Integration with Existing Services Architecture
 
@@ -182,8 +186,8 @@ Classic Monopoly square layout with themed boards.
 - Tile types per board:
   - **Property tiles** (color groups) — earn coins on landing
   - **Railroad tiles** (4) — trigger Bank Heist or Shutdown
-  - **Chance** — draw a card
-  - **Community Chest** — draw a card
+  - **Chance** — draw a card (types: GainCoins, LoseCoins, GoToTile, GoToJail, GainDice, GainShield)
+  - **Community Chest** — draw a card (same types as Chance, different distribution)
   - **Tax tiles** — coin loss
   - **GO** — pass bonus
   - **Corners** (Jail, Free Parking, Go To Jail) — special effects
@@ -210,7 +214,8 @@ Replaces classic houses/hotels. Landmarks are the core progression mechanic.
 | **Community Chest** | Random card effect |
 | **Tax** | Coin loss (fixed or percentage) |
 | **GO** | Pass bonus: `goBonus × multiplier` |
-| **Go To Jail** | Go to Jail (wait turns or spend dice to exit) |
+| **Free Parking** | No-op; safe landing, no reward or penalty |
+| **Go To Jail** | Go to Jail (wait 3 turns, roll doubles, or spend 50 dice to exit) |
 
 ### 1.5 Core Game Loop
 
