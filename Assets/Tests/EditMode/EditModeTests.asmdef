@@ -1,7 +1,9 @@
 {
     "name": "EditModeTests",
     "rootNamespace": "MonopolyLite.Tests",
-    "references": [],
+    "references": [
+        "Assembly-CSharp"
+    ],
     "includePlatforms": [
         "Editor"
     ],
