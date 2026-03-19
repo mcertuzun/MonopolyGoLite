@@ -8,6 +8,12 @@ namespace MonopolyLite.Core
         void Awake()
         {
             var cam = Camera.main;
+            if (cam == null)
+            {
+                var camGo = new GameObject("Main Camera", typeof(Camera));
+                camGo.tag = "MainCamera";
+                cam = camGo.GetComponent<Camera>();
+            }
             cam.orthographic = true;
             cam.orthographicSize = 12f;
             cam.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
