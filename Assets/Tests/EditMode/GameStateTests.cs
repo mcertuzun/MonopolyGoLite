@@ -1,0 +1,140 @@
+using NUnit.Framework;
+using MonopolyLite.State;
+using MonopolyLite.Data;
+
+namespace MonopolyLite.Tests
+{
+    public class GameStateTests
+    {
+        static BoardDef MakeBoardDef(LandmarkDef[] landmarks = null)
+        {
+            return new BoardDef
+            {
+                id = "test",
+                landmarks = landmarks ?? new LandmarkDef[0]
+            };
+        }
+
+        static LandmarkDef MakeLandmark(ColorGroup group)
+        {
+            return new LandmarkDef
+            {
+                colorGroup = group,
+                name = group.ToString(),
+                costs = new[] { 10, 20, 30, 40, 50 },
+                nwPoints = new[] { 1, 2, 3, 4, 5 }
+            };
+        }
+
+        // 1. NewGameState_HasCorrectDefaults
+        [Test]
+        public void NewGameState_HasCorrectDefaults()
+        {
+            var boardDef = MakeBoardDef();
+            var state = new GameState(boardDef, startingDice: 30, diceCap: 999);
+
+            Assert.AreEqual(0, state.Player.Coins);
+            Assert.AreEqual(30, state.Player.Dice);
+            Assert.AreEqual(999, state.Player.DiceCap);
+            Assert.AreEqual(0, state.Player.Position);
+            Assert.AreEqual(0, state.Player.Shields);
+            Assert.AreEqual(1, state.Player.Multiplier);
+            Assert.AreEqual(0, state.Player.JailTurnsLeft);
+            Assert.AreSame(boardDef, state.BoardDef);
+            Assert.IsNotNull(state.Board);
+        }
+
+        // 2. PlayerState_AddCoins_IncreasesCoins
+        [Test]
+        public void PlayerState_AddCoins_IncreasesCoins()
+        {
+            var player = new PlayerState(30, 999);
+            player.AddCoins(100);
+            Assert.AreEqual(100, player.Coins);
+            player.AddCoins(50);
+            Assert.AreEqual(150, player.Coins);
+        }
+
+        // 3. PlayerState_SpendCoins_DecreasesCoins
+        [Test]
+        public void PlayerState_SpendCoins_DecreasesCoins()
+        {
+            var player = new PlayerState(30, 999);
+            player.AddCoins(200);
+            bool result = player.SpendCoins(75);
+            Assert.IsTrue(result);
+            Assert.AreEqual(125, player.Coins);
+        }
+
+        // 4. PlayerState_SpendCoins_FailsWhenInsufficient
+        [Test]
+        public void PlayerState_SpendCoins_FailsWhenInsufficient()
+        {
+            var player = new PlayerState(30, 999);
+            player.AddCoins(50);
+            bool result = player.SpendCoins(100);
+            Assert.IsFalse(result);
+            Assert.AreEqual(50, player.Coins);
+        }
+
+        // 5. PlayerState_ConsumeDice_RespectsMultiplier
+        [Test]
+        public void PlayerState_ConsumeDice_RespectsMultiplier()
+        {
+            var player = new PlayerState(30, 999);
+            player.Multiplier = 3;
+            bool result = player.ConsumeDice();
+            Assert.IsTrue(result);
+            Assert.AreEqual(27, player.Dice);
+        }
+
+        // 6. PlayerState_ConsumeDice_FailsWhenInsufficient
+        [Test]
+        public void PlayerState_ConsumeDice_FailsWhenInsufficient()
+        {
+            var player = new PlayerState(2, 999);
+            player.Multiplier = 5;
+            bool result = player.ConsumeDice();
+            Assert.IsFalse(result);
+            Assert.AreEqual(2, player.Dice);
+        }
+
+        // 7. PlayerState_AddDice_RespectsCapFromCap
+        [Test]
+        public void PlayerState_AddDice_RespectsCapFromCap()
+        {
+            var player = new PlayerState(990, 1000);
+            player.AddDice(50);
+            Assert.AreEqual(1000, player.Dice);
+        }
+
+        // 8. BoardState_GetSetLandmarkLevel
+        [Test]
+        public void BoardState_GetSetLandmarkLevel()
+        {
+            var landmarks = new[] { MakeLandmark(ColorGroup.Brown), MakeLandmark(ColorGroup.Red) };
+            var board = new BoardState(landmarks);
+
+            Assert.AreEqual(0, board.GetLandmarkLevel(ColorGroup.Brown));
+            board.SetLandmarkLevel(ColorGroup.Brown, 3);
+            Assert.AreEqual(3, board.GetLandmarkLevel(ColorGroup.Brown));
+            Assert.AreEqual(0, board.GetLandmarkLevel(ColorGroup.Red));
+        }
+
+        // 9. BoardState_IsComplete_WhenAllLandmarksMaxLevel
+        [Test]
+        public void BoardState_IsComplete_WhenAllLandmarksMaxLevel()
+        {
+            var landmarks = new[] { MakeLandmark(ColorGroup.Brown), MakeLandmark(ColorGroup.Blue) };
+            var board = new BoardState(landmarks);
+
+            Assert.IsFalse(board.IsComplete());
+
+            board.SetLandmarkLevel(ColorGroup.Brown, 5);
+            Assert.IsFalse(board.IsComplete());
+
+            board.SetLandmarkLevel(ColorGroup.Blue, 5);
+            Assert.IsTrue(board.IsComplete());
+        }
+    }
+}
