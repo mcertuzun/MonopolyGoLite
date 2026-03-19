@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using MonopolyLite.State;
 using MonopolyLite.Data;
+using MonopolyLite.Config;
 
 namespace MonopolyLite.Tests
 {
@@ -135,6 +136,92 @@ namespace MonopolyLite.Tests
 
             board.SetLandmarkLevel(ColorGroup.Blue, 5);
             Assert.IsTrue(board.IsComplete());
+        }
+
+        [Test]
+        public void PlayerState_SetDiceCap_UpdatesCap()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 50, diceCap: 500);
+
+            state.Player.SetDiceCap(2000);
+
+            Assert.AreEqual(2000, state.Player.DiceCap);
+        }
+
+        [Test]
+        public void PlayerState_AddDice_RespectsNewCap()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 50, diceCap: 100);
+
+            state.Player.SetDiceCap(200);
+            state.Player.AddDice(180);
+
+            Assert.AreEqual(200, state.Player.Dice); // 50 + 180 = 230, capped at 200
+        }
+
+        [Test]
+        public void GameState_Progression_NullByDefault()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 100, diceCap: 1000);
+
+            Assert.IsNull(state.Progression);
+        }
+
+        [Test]
+        public void GameState_Progression_SetViaConstructor()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var progression = new ProgressionState();
+            var state = new GameState(board, startingDice: 100, diceCap: 1000, progression: progression);
+
+            Assert.IsNotNull(state.Progression);
+            Assert.AreEqual(0, state.Progression.CurrentBoardIndex);
+        }
+
+        [Test]
+        public void GameState_TransitionToBoard_ResetsBoardKeepsPlayer()
+        {
+            var board1 = BoardConfigLoader.CreateDefault();
+            var progression = new ProgressionState();
+            var state = new GameState(board1, startingDice: 100, diceCap: 1000, progression: progression);
+
+            state.Player.AddCoins(5000);
+            state.Player.NetWorth = 1500;
+            state.Player.Position = 15;
+            state.Board.SetLandmarkLevel(ColorGroup.Brown, 5);
+
+            var board2 = new BoardDef
+            {
+                tiles = new TileDef[9],
+                jailTileIndex = 6,
+                goTileIndex = 0,
+                goBonus = 300,
+                chanceCards = new CardDef[0],
+                communityChestCards = new CardDef[0],
+                landmarks = new LandmarkDef[]
+                {
+                    new LandmarkDef
+                    {
+                        colorGroup = ColorGroup.Pink,
+                        name = "Test Landmark",
+                        costs = new int[] { 200, 400, 600, 800, 1000 },
+                        nwPoints = new int[] { 50, 100, 200, 400, 800 },
+                    },
+                },
+            };
+
+            state.TransitionToBoard(board2);
+
+            // Player state carries over
+            Assert.AreEqual(5000, state.Player.Coins);
+            Assert.AreEqual(1500, state.Player.NetWorth);
+            Assert.AreEqual(0, state.Player.Position); // Reset to 0
+            // Board state is fresh
+            Assert.AreEqual(0, state.Board.GetLandmarkLevel(ColorGroup.Pink));
+            Assert.AreEqual(300, state.BoardDef.goBonus); // New board config
         }
     }
 }

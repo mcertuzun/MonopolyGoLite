@@ -57,5 +57,10 @@ namespace MonopolyLite.State
         {
             Shields = System.Math.Min(Shields + count, 3);
         }
+
+        public void SetDiceCap(int cap)
+        {
+            DiceCap = cap;
+        }
     }
 }
