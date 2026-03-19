@@ -149,7 +149,7 @@ namespace MonopolyLite.View
             nameLabel.text      = $"{lm.name}\nL{level}/5";
             nameLabel.fontSize  = 14f;
             nameLabel.color     = maxed ? new Color(0.3f, 1f, 0.3f) : Color.white;
-            nameLabel.alignment = TextAlignmentOptions.MidpointLeft;
+            nameLabel.alignment = TextAlignmentOptions.Left;
 
             // Build button
             var btnRect = CreateRect(row, "BuildBtn");
