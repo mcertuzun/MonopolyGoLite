@@ -32,6 +32,8 @@ namespace MonopolyLite.Core
         TargetProfile _pendingShutdownTarget;
         bool _awaitingShutdownChoice;
 
+        ISaveService _saveService;
+
         public event System.Action<RollResult, MoveResult> OnRollComplete;
         public event System.Action<TileResolveResult> OnTileResolved;
         public event System.Action<ColorGroup, int> OnLandmarkUpgraded;
@@ -54,14 +56,31 @@ namespace MonopolyLite.Core
         public void Initialize(string boardId = null)
         {
             _progressionDef = ProgressionConfigLoader.CreateDefault();
+            _saveService = new LocalSaveService();
+            bool isLoadedFromSave = _saveService.HasSave();
 
             var progression = new ProgressionState();
+            var stats = new PlayerStats();
 
-            if (boardId == null)
-                boardId = _progressionDef.boardOrder[progression.CurrentBoardIndex];
+            if (isLoadedFromSave)
+            {
+                var save = _saveService.Load();
 
-            BoardDef = BoardConfigLoader.Load(boardId);
-            State = new GameState(BoardDef, StartingDice, DiceCap, progression);
+                if (boardId == null)
+                    boardId = _progressionDef.boardOrder[save.currentBoardIndex];
+
+                BoardDef = BoardConfigLoader.Load(boardId);
+                State = new GameState(BoardDef, StartingDice, DiceCap, progression, stats);
+                SaveAdapter.ApplyToGameState(save, State);
+            }
+            else
+            {
+                if (boardId == null)
+                    boardId = _progressionDef.boardOrder[progression.CurrentBoardIndex];
+
+                BoardDef = BoardConfigLoader.Load(boardId);
+                State = new GameState(BoardDef, StartingDice, DiceCap, progression, stats);
+            }
 
             _diceSystem = new DiceSystem(RngSeed);
             _movementSystem = new MovementSystem();
@@ -81,16 +100,30 @@ namespace MonopolyLite.Core
             _railroadRng = new RNG((uint)(RngSeed + 300));
             _awaitingShutdownChoice = false;
 
-            var initialMilestones = _milestoneSystem.CheckAndApply(State.Player, State.Progression);
-            if (initialMilestones.Count > 0)
-                OnMilestonesReached?.Invoke(initialMilestones);
+            // Only apply initial milestones for fresh games (not loaded)
+            if (!isLoadedFromSave)
+            {
+                var initialMilestones = _milestoneSystem.CheckAndApply(State.Player, State.Progression);
+                if (initialMilestones.Count > 0)
+                    OnMilestonesReached?.Invoke(initialMilestones);
+            }
 
             _diceRegenSystem.ApplyRegen(State.Player, State.Progression, System.DateTime.UtcNow.Ticks);
 
             string today = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
             var dailyReward = _dailyLoginSystem.Claim(State.Player, State.Progression, today);
             if (dailyReward.HasValue)
+            {
                 OnDailyRewardClaimed?.Invoke(dailyReward.Value);
+                AutoSave();
+            }
+        }
+
+        void AutoSave()
+        {
+            if (_saveService == null) return;
+            var data = SaveAdapter.ToSaveData(State);
+            _saveService.Save(data);
         }
 
         void Update()
@@ -117,6 +150,8 @@ namespace MonopolyLite.Core
                     var tileResult = _tileResolver.Resolve(State);
                     OnRollComplete?.Invoke(jailRoll, moveResult);
                     OnTileResolved?.Invoke(tileResult);
+                    State.Stats.TotalRolls++;
+                    AutoSave();
                     if (tileResult.Type == TileResolveType.Railroad)
                         HandleRailroadEvent();
                 }
@@ -124,6 +159,8 @@ namespace MonopolyLite.Core
                 {
                     _jailSystem.TickJailTurn(State);
                     OnRollComplete?.Invoke(jailRoll, default);
+                    State.Stats.TotalRolls++;
+                    AutoSave();
                 }
                 return;
             }
@@ -136,6 +173,10 @@ namespace MonopolyLite.Core
 
             var resolve = _tileResolver.Resolve(State);
             OnTileResolved?.Invoke(resolve);
+            State.Stats.TotalRolls++;
+            if (resolve.Type == TileResolveType.CoinsGained)
+                State.Stats.TotalCoinsEarned += resolve.Amount;
+            AutoSave();
             if (resolve.Type == TileResolveType.Railroad)
                 HandleRailroadEvent();
         }
@@ -148,6 +189,7 @@ namespace MonopolyLite.Core
             {
                 int level = State.Board.GetLandmarkLevel(group);
                 OnLandmarkUpgraded?.Invoke(group, level);
+                AutoSave();
 
                 if (State.Progression != null)
                 {
@@ -179,6 +221,7 @@ namespace MonopolyLite.Core
             _cardSystem = new CardSystem(newSeed, _movementSystem);
             _tileResolver = new TileResolver(_cardSystem, _jailSystem);
 
+            State.Stats.BoardsCompleted++;
             OnBoardTransition?.Invoke(nextBoardId);
         }
 
@@ -214,6 +257,9 @@ namespace MonopolyLite.Core
             {
                 var result = _heistSystem.Resolve(State.Player.Multiplier, State.BoardDef.boardMultiplier);
                 State.Player.AddCoins(result.CoinsEarned);
+                State.Stats.HeistsCompleted++;
+                State.Stats.TotalCoinsEarned += result.CoinsEarned;
+                AutoSave();
                 OnHeistResolved?.Invoke(result, target);
             }
             else
@@ -233,6 +279,9 @@ namespace MonopolyLite.Core
                 State.Player.Multiplier, State.BoardDef.boardMultiplier);
 
             State.Player.AddCoins(result.CoinsEarned);
+            State.Stats.ShutdownsDealt++;
+            State.Stats.TotalCoinsEarned += result.CoinsEarned;
+            AutoSave();
             _pendingShutdownTarget = null;
             _awaitingShutdownChoice = false;
             OnShutdownResolved?.Invoke(result);

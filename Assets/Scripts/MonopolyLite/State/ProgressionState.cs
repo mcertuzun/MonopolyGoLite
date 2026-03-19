@@ -27,5 +27,15 @@ namespace MonopolyLite.State
         {
             return UnlockedMultipliers.Contains(multiplier);
         }
+
+        public void LoadMilestones(int[] milestones)
+        {
+            ClaimedMilestones = new System.Collections.Generic.HashSet<int>(milestones);
+        }
+
+        public void LoadMultipliers(int[] multipliers)
+        {
+            UnlockedMultipliers = new System.Collections.Generic.List<int>(multipliers);
+        }
     }
 }
