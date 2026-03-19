@@ -1,19 +1,39 @@
+using MonopolyLite.View;
 using UnityEngine;
 
-namespace MonopolyLite
+namespace MonopolyLite.Core
 {
     public class Bootstrap : MonoBehaviour
     {
-        private async void Awake()
+        void Awake()
         {
-            Main app = new GameObject("GameApp").AddComponent<Main>();
-            Services.CreateInstance();
-            await Services.StartSingleton();
-        }
+            var cam = Camera.main;
+            cam.orthographic = true;
+            cam.orthographicSize = 12f;
+            cam.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
 
-        private void OnDestroy()
-        {
-            Services.ShutdownSingleton();
+            var controllerGo = new GameObject("GameController");
+            var controller = controllerGo.AddComponent<GameController>();
+            controller.Initialize();
+
+            var boardGo = new GameObject("Board");
+            var boardRenderer = boardGo.AddComponent<BoardRenderer>();
+            boardRenderer.Render(controller.BoardDef);
+
+            var tokenGo = new GameObject("Token");
+            var tokenRenderer = tokenGo.AddComponent<TokenRenderer>();
+            tokenRenderer.Initialize(Color.white, controller.BoardDef.tileSize);
+            tokenRenderer.MoveTo(boardRenderer.GetTilePosition(0));
+
+            controller.OnRollComplete += (roll, move) =>
+            {
+                if (roll.Success)
+                    tokenRenderer.MoveTo(boardRenderer.GetTilePosition(controller.State.Player.Position));
+            };
+
+            var uiGo = new GameObject("UI");
+            var uiManager = uiGo.AddComponent<UIManager>();
+            uiManager.Initialize(controller);
         }
     }
 }
