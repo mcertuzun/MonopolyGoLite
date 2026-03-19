@@ -25,6 +25,13 @@ namespace MonopolyLite.Core
         DailyLoginSystem _dailyLoginSystem;
         ProgressionDef _progressionDef;
 
+        HeistSystem _heistSystem;
+        ShutdownSystem _shutdownSystem;
+        ITargetProvider _targetProvider;
+        RNG _railroadRng;
+        TargetProfile _pendingShutdownTarget;
+        bool _awaitingShutdownChoice;
+
         public event System.Action<RollResult, MoveResult> OnRollComplete;
         public event System.Action<TileResolveResult> OnTileResolved;
         public event System.Action<ColorGroup, int> OnLandmarkUpgraded;
@@ -34,6 +41,10 @@ namespace MonopolyLite.Core
         public event System.Action<string> OnBoardTransition;
         public event System.Action<DailyRewardDef> OnDailyRewardClaimed;
         public event System.Action<int> OnDiceRegenerated;
+
+        public event System.Action<HeistResult, TargetProfile> OnHeistResolved;
+        public event System.Action<TargetProfile> OnShutdownStarted;
+        public event System.Action<ShutdownResult> OnShutdownResolved;
 
         const int StartingDice = 100;
         const int DiceCap = 1000;
@@ -64,6 +75,12 @@ namespace MonopolyLite.Core
             _boardProgressionSystem = new BoardProgressionSystem(_progressionDef.boardOrder);
             _dailyLoginSystem = new DailyLoginSystem(_progressionDef.dailyRewards);
 
+            _heistSystem = new HeistSystem(RngSeed + 100);
+            _shutdownSystem = new ShutdownSystem();
+            _targetProvider = new MockTargetProvider(RngSeed + 200);
+            _railroadRng = new RNG((uint)(RngSeed + 300));
+            _awaitingShutdownChoice = false;
+
             var initialMilestones = _milestoneSystem.CheckAndApply(State.Player, State.Progression);
             if (initialMilestones.Count > 0)
                 OnMilestonesReached?.Invoke(initialMilestones);
@@ -87,6 +104,8 @@ namespace MonopolyLite.Core
 
         public void DoRoll()
         {
+            if (_awaitingShutdownChoice) return;
+
             if (_jailSystem.IsInJail(State))
             {
                 var jailRoll = _diceSystem.Roll(State.Player);
@@ -98,6 +117,8 @@ namespace MonopolyLite.Core
                     var tileResult = _tileResolver.Resolve(State);
                     OnRollComplete?.Invoke(jailRoll, moveResult);
                     OnTileResolved?.Invoke(tileResult);
+                    if (tileResult.Type == TileResolveType.Railroad)
+                        HandleRailroadEvent();
                 }
                 else
                 {
@@ -115,6 +136,8 @@ namespace MonopolyLite.Core
 
             var resolve = _tileResolver.Resolve(State);
             OnTileResolved?.Invoke(resolve);
+            if (resolve.Type == TileResolveType.Railroad)
+                HandleRailroadEvent();
         }
 
         public void DoPayJailExit() => _jailSystem.PayToExit(State);
@@ -181,5 +204,44 @@ namespace MonopolyLite.Core
 
         public bool CanUpgradeLandmark(ColorGroup group) => _landmarkSystem.CanUpgrade(State, group);
         public int GetUpgradeCost(ColorGroup group) => _landmarkSystem.GetUpgradeCost(State, group);
+
+        void HandleRailroadEvent()
+        {
+            bool isHeist = _railroadRng.Next(0, 2) == 0;
+            var target = _targetProvider.GetRandomTarget(State.Progression?.CurrentBoardIndex ?? 0);
+
+            if (isHeist)
+            {
+                var result = _heistSystem.Resolve(State.Player.Multiplier, State.BoardDef.boardMultiplier);
+                State.Player.AddCoins(result.CoinsEarned);
+                OnHeistResolved?.Invoke(result, target);
+            }
+            else
+            {
+                _pendingShutdownTarget = target;
+                _awaitingShutdownChoice = true;
+                OnShutdownStarted?.Invoke(target);
+            }
+        }
+
+        public void DoShutdownAttack(ColorGroup chosenLandmark)
+        {
+            if (_pendingShutdownTarget == null) return;
+
+            var result = _shutdownSystem.Resolve(
+                _pendingShutdownTarget, chosenLandmark,
+                State.Player.Multiplier, State.BoardDef.boardMultiplier);
+
+            State.Player.AddCoins(result.CoinsEarned);
+            _pendingShutdownTarget = null;
+            _awaitingShutdownChoice = false;
+            OnShutdownResolved?.Invoke(result);
+        }
+
+        public void DoSkipShutdown()
+        {
+            _pendingShutdownTarget = null;
+            _awaitingShutdownChoice = false;
+        }
     }
 }

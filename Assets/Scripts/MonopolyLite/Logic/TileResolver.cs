@@ -46,10 +46,8 @@ namespace MonopolyLite.Logic
                 }
                 case TileType.Railroad:
                 {
-                    // Phase 3: Bank Heist / Shutdown. Placeholder: bonus coins.
-                    int reward = tile.baseReward * state.Player.Multiplier;
-                    state.Player.AddCoins(reward);
-                    return new TileResolveResult { Type = TileResolveType.Railroad, Amount = reward };
+                    // Heist/Shutdown handled by GameController after resolve
+                    return new TileResolveResult { Type = TileResolveType.Railroad, Amount = 0 };
                 }
                 case TileType.Chance:
                 {

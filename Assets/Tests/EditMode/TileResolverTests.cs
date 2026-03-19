@@ -98,9 +98,9 @@ namespace MonopolyLite.Tests
             Assert.AreEqual(0, _state.Player.Coins); // floors at zero
         }
 
-        // 3. Railroad tile grants bonus coins
+        // 3. Railroad tile returns Railroad type with no coin grant (Heist/Shutdown delegated to GameController)
         [Test]
-        public void Resolve_Railroad_GrantsBonusCoins()
+        public void Railroad_ReturnsRailroadType_NoCoinGrant()
         {
             _state.Player.Position = 5;
             _state.Player.Multiplier = 1;
@@ -108,8 +108,8 @@ namespace MonopolyLite.Tests
             var result = _resolver.Resolve(_state);
 
             Assert.AreEqual(TileResolveType.Railroad, result.Type);
-            Assert.AreEqual(100, result.Amount);
-            Assert.AreEqual(100, _state.Player.Coins);
+            Assert.AreEqual(0, result.Amount);
+            Assert.AreEqual(0, _state.Player.Coins);
         }
 
         // 4. GoToJail tile sends player to jail tile and sets JailTurnsLeft=3
