@@ -25,6 +25,16 @@ namespace MonopolyLite.View
             _landmarkPanelView = landmarkGo.AddComponent<LandmarkPanelView>();
             _landmarkPanelView.Initialize(controller, canvasRect);
 
+            var heistGo = new GameObject("HeistPanelView");
+            heistGo.transform.SetParent(transform, false);
+            var heistPanel = heistGo.AddComponent<HeistPanelView>();
+            heistPanel.Initialize(controller, canvasRect);
+
+            var shutdownGo = new GameObject("ShutdownPanelView");
+            shutdownGo.transform.SetParent(transform, false);
+            var shutdownPanel = shutdownGo.AddComponent<ShutdownPanelView>();
+            shutdownPanel.Initialize(controller, canvasRect);
+
             controller.OnBoardComplete += HandleBoardComplete;
             controller.OnBoardTransition += HandleBoardTransition;
         }

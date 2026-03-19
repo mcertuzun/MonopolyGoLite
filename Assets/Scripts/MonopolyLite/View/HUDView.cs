@@ -1,4 +1,5 @@
 using MonopolyLite.Core;
+using MonopolyLite.Data;
 using MonopolyLite.Logic;
 using TMPro;
 using UnityEngine;
@@ -39,6 +40,9 @@ namespace MonopolyLite.View
             controller.OnDiceRegenerated += HandleDiceRegenerated;
             controller.OnBoardTransition += HandleBoardTransition;
             controller.OnDailyRewardClaimed += HandleDailyReward;
+            controller.OnHeistResolved += HandleHeistResolved;
+            controller.OnShutdownStarted += HandleShutdownStarted;
+            controller.OnShutdownResolved += HandleShutdownResolved;
 
             RefreshStats();
         }
@@ -199,6 +203,29 @@ namespace MonopolyLite.View
         void HandleDailyReward(MonopolyLite.Data.DailyRewardDef reward)
         {
             _statusLabel.text = $"Daily reward! +{reward.coins} coins, +{reward.dice} dice (Day {reward.day})";
+            RefreshStats();
+        }
+
+        void HandleHeistResolved(HeistResult result, TargetProfile target)
+        {
+            if (result.IsMatch)
+                _statusLabel.text = $"Heist vs {target.displayName}: {result.MatchedSymbol}! +{result.CoinsEarned}";
+            else
+                _statusLabel.text = $"Heist vs {target.displayName}: Miss! +{result.CoinsEarned}";
+            RefreshStats();
+        }
+
+        void HandleShutdownStarted(TargetProfile target)
+        {
+            _statusLabel.text = $"Shutdown! Choose a landmark on {target.displayName}'s board...";
+        }
+
+        void HandleShutdownResolved(ShutdownResult result)
+        {
+            if (result.Shielded)
+                _statusLabel.text = $"Shutdown blocked by shield! +{result.CoinsEarned}";
+            else
+                _statusLabel.text = $"SHUTDOWN on {result.TargetName}! +{result.CoinsEarned}";
             RefreshStats();
         }
 
