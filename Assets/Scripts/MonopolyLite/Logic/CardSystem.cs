@@ -4,9 +4,9 @@ using MonopolyLite.State;
 
 namespace MonopolyLite.Logic
 {
-    /// Design decision: Card-based LoseCoins does NOT scale with multiplier.
-    /// Rationale: In Monopoly Go, multiplier only affects dice-triggered gains/losses
-    /// (property rewards, tax, GO bonus). Card effects are flat amounts.
+    /// Design decision: Card GainCoins scales with multiplier (rewarding high-risk play).
+    /// Card LoseCoins does NOT scale (flat penalty). This matches Monopoly Go behavior
+    /// where positive outcomes are amplified but negative card outcomes are fixed.
     public class CardSystem
     {
         readonly int _seed;

@@ -41,8 +41,8 @@ namespace MonopolyLite.Logic
                 case TileType.Tax:
                 {
                     int loss = tile.taxAmount * state.Player.Multiplier;
-                    state.Player.SpendCoins(loss);
-                    return new TileResolveResult { Type = TileResolveType.CoinsLost, Amount = loss };
+                    int actual = state.Player.DeductCoins(loss);
+                    return new TileResolveResult { Type = TileResolveType.CoinsLost, Amount = actual };
                 }
                 case TileType.Railroad:
                 {

@@ -83,6 +83,21 @@ namespace MonopolyLite.Tests
             Assert.AreEqual(200, _state.Player.Coins);
         }
 
+        // 2b. Tax tile floors at zero when player can't afford it
+        [Test]
+        public void Resolve_Tax_InsufficientCoins_FloorsAtZero()
+        {
+            _state.Player.Position = 2;
+            _state.Player.Multiplier = 2;
+            _state.Player.AddCoins(100); // tax = 150*2 = 300, but only 100 available
+
+            var result = _resolver.Resolve(_state);
+
+            Assert.AreEqual(TileResolveType.CoinsLost, result.Type);
+            Assert.AreEqual(100, result.Amount);   // actual deducted = 100
+            Assert.AreEqual(0, _state.Player.Coins); // floors at zero
+        }
+
         // 3. Railroad tile grants bonus coins
         [Test]
         public void Resolve_Railroad_GrantsBonusCoins()

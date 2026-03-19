@@ -26,6 +26,13 @@ namespace MonopolyLite.State
             return true;
         }
 
+        public int DeductCoins(int amount)
+        {
+            int actual = System.Math.Min(amount, Coins);
+            Coins -= actual;
+            return actual;
+        }
+
         public bool ConsumeDice()
         {
             int cost = Multiplier;
