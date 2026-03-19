@@ -17,7 +17,7 @@ namespace MonopolyLite.Core
             cam.orthographic = true;
             cam.orthographicSize = 12f;
             cam.backgroundColor = new Color(0.1f, 0.1f, 0.15f);
-
+            cam.transform.position = Vector3.back * 10;
             var controllerGo = new GameObject("GameController");
             var controller = controllerGo.AddComponent<GameController>();
             controller.Initialize();
