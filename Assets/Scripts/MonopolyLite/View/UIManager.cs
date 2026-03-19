@@ -26,6 +26,7 @@ namespace MonopolyLite.View
             _landmarkPanelView.Initialize(controller, canvasRect);
 
             controller.OnBoardComplete += HandleBoardComplete;
+            controller.OnBoardTransition += HandleBoardTransition;
         }
 
         // ── Canvas ────────────────────────────────────────────────────────────
@@ -67,6 +68,13 @@ namespace MonopolyLite.View
         void HandleBoardComplete()
         {
             Debug.Log("[UIManager] Board complete! All landmarks at level 5.");
+        }
+
+        // ── Board transition ──────────────────────────────────────────────────
+
+        void HandleBoardTransition(string newBoardId)
+        {
+            Debug.Log($"[UIManager] Board transition to: {newBoardId}");
         }
     }
 }

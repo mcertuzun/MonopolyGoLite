@@ -15,12 +15,13 @@ namespace MonopolyLite.View
         TextMeshProUGUI _shieldsLabel;
         TextMeshProUGUI _networthLabel;
         TextMeshProUGUI _statusLabel;
+        TextMeshProUGUI _regenLabel;
+        TextMeshProUGUI _boardLabel;
 
         Button _rollButton;
         Button _multiplierButton;
         TextMeshProUGUI _multiplierLabel;
 
-        static readonly int[] MultiplierCycle = { 1, 2, 5, 10 };
         int _multiplierIndex = 0;
 
         public void Initialize(GameController controller, RectTransform canvasRect)
@@ -34,6 +35,10 @@ namespace MonopolyLite.View
 
             controller.OnRollComplete += HandleRollComplete;
             controller.OnTileResolved += HandleTileResolved;
+            controller.OnMilestonesReached += HandleMilestonesReached;
+            controller.OnDiceRegenerated += HandleDiceRegenerated;
+            controller.OnBoardTransition += HandleBoardTransition;
+            controller.OnDailyRewardClaimed += HandleDailyReward;
 
             RefreshStats();
         }
@@ -44,7 +49,7 @@ namespace MonopolyLite.View
         {
             var panel = CreatePanel(canvas, "StatsPanel",
                 new Vector2(0f, 1f), new Vector2(0f, 1f),
-                new Vector2(20f, -20f), new Vector2(260f, 140f));
+                new Vector2(20f, -20f), new Vector2(260f, 210f));
 
             var bg = panel.gameObject.AddComponent<Image>();
             bg.color = new Color(0f, 0f, 0f, 0.55f);
@@ -53,6 +58,8 @@ namespace MonopolyLite.View
             _coinsLabel    = CreateLabel(panel, "CoinsLabel",    new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -42f),  new Vector2(240f, 28f));
             _shieldsLabel  = CreateLabel(panel, "ShieldsLabel",  new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -74f),  new Vector2(240f, 28f));
             _networthLabel = CreateLabel(panel, "NetWorthLabel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -106f), new Vector2(240f, 28f));
+            _regenLabel = CreateLabel(panel, "RegenLabel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -138f), new Vector2(240f, 28f));
+            _boardLabel = CreateLabel(panel, "BoardLabel", new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(10f, -170f), new Vector2(240f, 28f));
         }
 
         // ── Status text (center, above roll button) ───────────────────────────
@@ -168,12 +175,42 @@ namespace MonopolyLite.View
             RefreshStats();
         }
 
+        void HandleMilestonesReached(System.Collections.Generic.List<int> milestoneIndices)
+        {
+            _statusLabel.text = $"Milestone reached! ({milestoneIndices.Count} new)";
+            _multiplierIndex = 0;
+            var unlocked = _controller.GetUnlockedMultipliers();
+            _multiplierLabel.text = $"{unlocked[0]}x";
+            _controller.SetMultiplier(unlocked[0]);
+            RefreshStats();
+        }
+
+        void HandleDiceRegenerated(int amount)
+        {
+            RefreshStats();
+        }
+
+        void HandleBoardTransition(string newBoardId)
+        {
+            _statusLabel.text = $"New board: {_controller.BoardDef.theme}!";
+            RefreshStats();
+        }
+
+        void HandleDailyReward(MonopolyLite.Data.DailyRewardDef reward)
+        {
+            _statusLabel.text = $"Daily reward! +{reward.coins} coins, +{reward.dice} dice (Day {reward.day})";
+            RefreshStats();
+        }
+
         // ── Helpers ───────────────────────────────────────────────────────────
 
         void CycleMultiplier()
         {
-            _multiplierIndex = (_multiplierIndex + 1) % MultiplierCycle.Length;
-            int value = MultiplierCycle[_multiplierIndex];
+            var unlocked = _controller.GetUnlockedMultipliers();
+            if (unlocked.Count == 0) return;
+
+            _multiplierIndex = (_multiplierIndex + 1) % unlocked.Count;
+            int value = unlocked[_multiplierIndex];
             _controller.SetMultiplier(value);
             _multiplierLabel.text = $"{value}x";
         }
@@ -186,6 +223,19 @@ namespace MonopolyLite.View
             _coinsLabel.text    = $"Coins: {p.Coins}";
             _shieldsLabel.text  = $"Shields: {p.Shields}/3";
             _networthLabel.text = $"Net Worth: {p.NetWorth}";
+
+            var prog = _controller.State.Progression;
+            if (prog != null)
+            {
+                int regenSec = prog.DiceRegenSeconds;
+                _regenLabel.text = $"Regen: 1 / {regenSec / 60}m{regenSec % 60:D2}s";
+                _boardLabel.text = $"Board: {_controller.BoardDef.theme ?? "Unknown"}";
+            }
+            else
+            {
+                _regenLabel.text = "";
+                _boardLabel.text = "";
+            }
         }
 
         // ── UI factory helpers ────────────────────────────────────────────────
