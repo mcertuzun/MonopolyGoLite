@@ -14,6 +14,9 @@ namespace MonopolyLite.Logic
                 return 0;
             }
 
+            if (progression.DiceRegenSeconds <= 0)
+                return 0;
+
             long elapsed = currentTicks - progression.LastRegenTicks;
             long intervalTicks = (long)progression.DiceRegenSeconds * TicksPerSecond;
             int diceToGrant = (int)(elapsed / intervalTicks);
