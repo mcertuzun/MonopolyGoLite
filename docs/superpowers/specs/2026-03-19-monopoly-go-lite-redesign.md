@@ -2,6 +2,7 @@
 
 **Status**: Approved
 **Date**: 2026-03-19
+**Supersedes**: `2026-03-16-monopoly-gameplay-mechanics-design.md` (classic Monopoly design — fully replaced)
 **Approach**: Clean rewrite (keep Systems/ infrastructure + Unity project structure)
 **Backend**: Firebase/BaaS
 **Orchestration**: agency-agents multi-agent pipeline
@@ -34,6 +35,130 @@ MonopolyGoLite is being redesigned from a classic Monopoly clone to a Monopoly G
 3. **Social Mechanics** — Shield, Bank Heist, Shutdown, Firebase integration
 4. **Meta Systems** — Sticker album, events, leaderboard
 5. **Polish & Reusable Systems** — Extract general systems for cross-game use
+
+---
+
+## Migration & Deprecation
+
+This spec **fully replaces** the prior design (`2026-03-16-monopoly-gameplay-mechanics-design.md`). The following systems from that spec are discarded: property ownership, rent tables, houses/hotels, railroads-as-property, utilities, decline-to-discount, bankruptcy win/lose conditions.
+
+### File Disposition
+
+| File/Directory | Action | Reason |
+|---|---|---|
+| `Assets/Scripts/MonopolyLite/Core/Main.cs` | **DELETE** | Classic Monopoly game loop, incompatible |
+| `Assets/Scripts/MonopolyLite/Core/Main.Logic.cs` | **DELETE** | Rent/buy/sell/jail logic, fully replaced |
+| `Assets/Scripts/MonopolyLite/Core/Main.Input.cs` | **DELETE** | Old UI input handling |
+| `Assets/Scripts/MonopolyLite/Core/Bootstrap.cs` | **REWRITE** | Keep entry point pattern, rewire to new systems |
+| `Assets/Scripts/MonopolyLite/Core/Recorder.cs` | **DELETE** | Replay system not applicable to new design |
+| `Assets/Scripts/MonopolyLite/Shared/GameConfig.cs` | **DELETE** | Classic Monopoly fields, replaced by new config |
+| `Assets/Scripts/MonopolyLite/Shared/TileDef.cs` | **REWRITE** | Keep struct concept, new fields for Monopoly Go tiles |
+| `Assets/Scripts/MonopolyLite/Shared/TileType.cs` | **REWRITE** | New enum values for redesigned tile types |
+| `Assets/Scripts/MonopolyLite/Shared/GameConfigJson.cs` | **REWRITE** | New JSON schema |
+| `Assets/Scripts/MonopolyLite/Shared/ConfigLoader.cs` | **KEEP** | JSON loading pattern reusable |
+| `Assets/Scripts/MonopolyLite/Shared/Helpers.cs` | **KEEP** | Sprites, Layout, RNG still useful |
+| `Assets/Scripts/Systems/` | **KEEP** | Core infrastructure (GameSystem, Services, Logger, Yield) |
+| `Assets/Scripts/Systems/Services/` | **EVALUATE** | Keep shells, rewrite internals per new design |
+| `Assets/Scripts/Pool/` | **KEEP** | Extend into PoolManager reusable system |
+| `Assets/Resources/gameconfig.json` | **REWRITE** | New board-based JSON schema |
+| `feature/gameplay-expansion` branch | **ARCHIVE** | Do not merge; keep as reference only |
+
+### Integration with Existing Services Architecture
+
+The existing `Services` pattern (`GameSystem` base class + `Services.cs` singleton manager + UniTask) is **kept as the backbone**:
+
+- New reusable modules (EventBus, EconomyFramework, etc.) are **standalone** — they do NOT extend `GameService`
+- The game layer wraps them: e.g., `MonopolyEconomyService : GameService` wraps `IEconomyFramework`
+- Existing services disposition:
+  - `GameEventService` → replaced by EventBus
+  - `InventoryService` → replaced by InventorySystem
+  - `ProfileService` → replaced by Firebase Auth + ProfileService wrapper
+  - `MonetizationService` → kept, extended with IAP integration
+  - `NetworkService` → replaced by Firebase abstraction layer
+  - `SocialService` → rewritten for friend system
+
+---
+
+## Authentication & Session Management
+
+### First Launch Flow
+
+1. App opens → **anonymous Firebase Auth** automatically (no sign-in screen)
+2. Local save created immediately with anonymous UID
+3. Player can play the full core loop without signing in
+4. Social features (friends, trading, leaderboards) prompt sign-in
+
+### Account Linking
+
+- Anonymous account → link to Google/Apple at any time
+- Linking preserves all progress (same UID)
+- Prompt linking at: first friend add, first sticker trade, NW milestone
+
+### Session Lifecycle
+
+- Firebase Auth token auto-refreshes (Firebase SDK handles this)
+- On token refresh failure → continue with local cache, retry on next app foreground
+- Game state saves locally after every action, syncs to Firebase periodically (every 30s) and on app background/close
+
+### Failure Handling
+
+- Firebase write failure → queue locally, retry with exponential backoff (max 5 retries)
+- Extended offline (>24h) → on reconnect, server timestamp wins for leaderboard/events, client state wins for game progress (coins, dice, landmarks)
+- Conflict resolution: **last-write-wins** for game state, **server-authoritative** for social events and leaderboards
+
+### Guest Play Scope
+
+- Full core loop (roll, move, build landmarks, board progression) works offline
+- Social features (heist, shutdown, friends, events, leaderboards) require connectivity
+- Sticker collection works offline, trading requires connectivity
+
+---
+
+## Economy: Dual Resource System
+
+The game has **two core resources**, not one:
+
+### Coins (Soft Currency)
+- **Earn from**: Property landing, GO pass, Chance/Community Chest, Bank Heist, events
+- **Spend on**: Landmark building/upgrade, Jail exit
+- **Inflation**: Scales per board level
+- **Cannot be purchased** with real money directly
+
+### Dice (Energy Currency)
+- **Earn from**: Time regen, daily login, events, sticker rewards, free dice links
+- **Spend on**: Rolling (1 × multiplier per roll)
+- **Cap**: Starts at 1000, increases with Net Worth
+- **Can be purchased** via IAP (monetization path)
+
+### Premium Currency (Gems) — Future
+- Not implemented in Phase 1-4
+- Reserved for potential future monetization (cosmetic shop, premium sticker packs)
+- The EconomyFramework supports arbitrary currency types for forward-compatibility
+
+### EconomyFramework Coverage
+The reusable EconomyFramework (Phase 5) manages **all resource types**: Coins, Dice, and any future currencies. Each currency is defined via config with: earn rules, spend rules, caps, regen rates.
+
+### Board 1 Sample Balance (Istanbul) — To Be Tuned
+
+| Item | Value |
+|---|---|
+| Starting coins | 0 |
+| Starting dice | 100 |
+| GO pass bonus | 200 coins |
+| Property base reward (Brown) | 50 coins |
+| Property base reward (Blue) | 200 coins |
+| Tax tile | 150 coins |
+| Landmark L1 cost (Brown) | 500 coins |
+| Landmark L2 cost (Brown) | 1,200 coins |
+| Landmark L3 cost (Brown) | 3,000 coins |
+| Landmark L4 cost (Brown) | 7,000 coins |
+| Landmark L5 cost (Brown) | 15,000 coins |
+| Landmark L1 cost (Blue) | 2,000 coins |
+| Landmark L5 cost (Blue) | 50,000 coins |
+| Board 2 cost multiplier | 1.8x Board 1 |
+| NW per landmark level | 100 / 300 / 600 / 1200 / 2500 |
+| Jail exit cost | 50 dice |
+| Dice regen rate | 1 dice / 5 min |
 
 ---
 
@@ -103,11 +228,11 @@ Replaces classic houses/hotels. Landmarks are the core progression mechanic.
 
 ### 2.1 Currency System
 
-Single currency: **Coins**.
+Dual resource system: **Coins** + **Dice** (see "Economy: Dual Resource System" section above for full details).
 
-- **Earn from**: Property landing, GO pass, Chance/Community Chest cards, Bank Heist, event rewards
-- **Spend on**: Landmark building/upgrade, Jail exit, special events
-- **Inflation control**: Each new board scales earnings and costs proportionally (board level multiplier)
+- **Coins**: Earned in-game, spent on landmarks. Scales with board progression.
+- **Dice**: Energy resource, spent on rolling. Regens over time, purchasable via IAP.
+- **Inflation control**: Each new board scales coin earnings and landmark costs proportionally (board level multiplier, ~1.8x per board)
 
 ### 2.2 Net Worth System
 
@@ -190,23 +315,120 @@ Triggered with ~50% chance on railroad tile landing.
 ```
 users/
   {userId}/
-    profile: { displayName, avatarId, createdAt }
-    gameState: { currentBoard, coins, dice, shields, netWorth }
-    landmarks: { [boardId]: { [colorGroup]: level } }
-    stats: { totalRolls, totalCoinsEarned, boardsCompleted }
+    profile/
+      displayName: string
+      avatarId: string
+      createdAt: timestamp
+      lastLoginAt: timestamp
+      loginStreak: number              // daily login streak (0-7)
+      fcmToken: string                 // push notification token
+      notificationPrefs: { shutdown: bool, diceFull: bool, events: bool, daily: bool }
 
-boards/
+    gameState/
+      currentBoard: string             // boardId
+      coins: number
+      dice: number
+      diceLastRegenAt: timestamp       // for offline regen calculation
+      shields: number                  // 0-3
+      netWorth: number
+      unlockedMultipliers: number[]    // [1, 2, 5] — which multipliers available
+      diceRegenRate: number            // seconds per dice (decreases with NW)
+      diceMaxCap: number              // increases with NW
+
+    landmarks/
+      {boardId}/
+        {colorGroup}: number           // level 0-5
+
+    stats/
+      totalRolls: number
+      totalCoinsEarned: number
+      boardsCompleted: number
+      heistsCompleted: number
+      shutdownsDealt: number
+
+    stickers/
+      {albumId}/
+        {stickerId}: number            // count owned (1+ = owned, 2+ = duplicates)
+      duplicateStars: number           // total star value of all duplicates
+      lastSafeOpenAt: timestamp        // daily safe cooldown
+
+    missions/
+      {date}/                          // "2026-03-19"
+        {missionId}/
+          type: string
+          target: number
+          progress: number
+          completed: bool
+      allCompleted: bool               // bonus chest claimed
+
+    friends/
+      {friendUserId}/
+        status: "pending" | "accepted"
+        addedAt: timestamp
+
+    events/
+      {eventId}/
+        score: number
+        lastUpdatedAt: timestamp
+
+boards/                                // bundled in client as JSON, cached in Firebase for hot-update
   {boardId}/
-    config: { theme, tiles[], landmarks[], costs[] }
+    config/
+      theme: string
+      tiles: TileDef[]
+      landmarkCosts: { [colorGroup]: number[5] }  // cost per level
+      landmarkNW: { [colorGroup]: number[5] }     // NW per level
+      chanceCards: CardDef[]
+      communityChestCards: CardDef[]
+      boardMultiplier: number          // cost/reward scale factor
 
 leaderboards/
-  weekly/  { [userId]: netWorthGain }
-  allTime/ { [userId]: totalNetWorth }
+  weekly/   { [userId]: { netWorthGain: number, displayName: string } }
+  allTime/  { [userId]: { totalNetWorth: number, displayName: string } }
+  event_{eventId}/ { [userId]: { score: number, displayName: string } }
 
 socialEvents/
   {eventId}/
-    { type: "heist"|"shutdown", fromUser, toUser, result, timestamp }
+    type: "heist" | "shutdown"
+    fromUser: string
+    toUser: string
+    result: object                     // heist: { symbol, reward }, shutdown: { shielded, reward }
+    timestamp: timestamp
+
+matchmakingPool/                       // for heist/shutdown random player selection
+  {boardRange}/                        // "board_1_5", "board_6_10", etc.
+    {userId}: { netWorth: number, shields: number, lastActive: timestamp }
 ```
+
+### 3.4.1 Board Config Source
+
+Board configs are **bundled in the client** as local JSON files (`Assets/Resources/Boards/`). Firebase holds a copy for hot-updates:
+- On launch: load local JSON
+- Check Firebase for newer version (version field comparison)
+- If newer exists: download and cache locally
+- This allows adding/rebalancing boards without client updates
+
+### 3.4.2 Matchmaking Strategy
+
+For Bank Heist / Shutdown target selection:
+- Players are grouped by board range (boards 1-5, 6-10, etc.)
+- Within a range, select random player from `matchmakingPool`
+- **Friends first**: If friends exist in the pool, 70% chance to target a friend
+- **Small pool fallback**: If <10 players in range, use bot profiles (system-generated fake players with realistic landmarks/shields)
+- Firebase query: `matchmakingPool/{boardRange}` ordered by random field, limit 1
+
+### 3.4.3 Security Rules & Validation
+
+- **Server-side validation** (Cloud Functions) for:
+  - Coin/dice mutations (prevent client-side tampering)
+  - Landmark upgrades (verify sufficient coins before deducting)
+  - Leaderboard writes (validate NW calculations)
+- **Client-side operations** (direct Firestore):
+  - Read own game state
+  - Read board configs
+  - Read leaderboards, friend lists
+- **Rate limiting**: Cloud Functions enforce max 1 roll per second per user
+- **Anti-cheat**: Server validates dice count matches expected regen + purchases
 
 ### 3.5 Friend System
 
@@ -311,8 +533,23 @@ Assets/Scripts/Systems/{SystemName}/
 
 - `IBackendService` interface → Firebase implementation
 - Enables future backend swap (PlayFab, custom server)
-- Offline-first: local cache → sync when online
-- Retry logic, conflict resolution
+
+**Offline Strategy**:
+- **Local-first**: All game state writes go to local JSON first, then sync to Firebase
+- **Offline-capable**: Core loop (roll, move, build) works fully offline
+- **Online-required**: Heist, Shutdown, friend actions, leaderboard, sticker trading, events
+- **Sync granularity**: Per-document (entire `gameState`, entire `landmarks/{boardId}`)
+- **Conflict resolution**: Last-write-wins for game state; server-authoritative for social/leaderboard
+- **Retry**: Exponential backoff (1s, 2s, 4s, 8s, 16s), max 5 retries, then queue for next foreground
+- **Offline dice regen**: On reconnect, calculate elapsed time × regen rate, cap at max
+
+### 5.3.1 Monetization Model
+
+- **Primary revenue**: IAP dice packs (small: 100 dice, medium: 500 dice, large: 2000 dice)
+- **Secondary**: Ad-rewarded dice (watch ad → 20 dice, cooldown: 1 per 30 min)
+- **No pay-to-win**: Coins cannot be purchased; landmarks require coins which require gameplay
+- **Cosmetics**: Token skins, board themes (future — not in Phase 1-4)
+- The existing `MonetizationService` is kept and extended with Unity IAP + AdMob integration
 
 ### 5.4 Audio & VFX
 
