@@ -9,32 +9,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1c7b04a61c410de408403b464e341a5d, type: 3}
-  m_Name: GameConfig
-  m_EditorClassIdentifier: 
+  m_Script: {fileID: 11500000, guid: 29c91c0ac29b74db8b3f64da15189435, type: 3}
+  m_Name: GameConfig 1
+  m_EditorClassIdentifier: Assembly-CSharp::MonopolyLite.GameConfig
   sideLength: 12
   tileSize: 1.8
-  tiles:
-  - name: Start
-    type: 0
-    price: 100
-    baseRent: 50
-    taxAmount: 10
-  - name: A
-    type: 1
-    price: 100
-    baseRent: 50
-    taxAmount: 10
-  - name: B
-    type: 1
-    price: 100
-    baseRent: 50
-    taxAmount: 10
-  - name: C
-    type: 3
-    price: 100
-    baseRent: 50
-    taxAmount: 10
+  tiles: []
   startingCash: 1500
   goPayout: 200
   jailTileIndex: 6
