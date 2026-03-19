@@ -62,5 +62,15 @@ namespace MonopolyLite.State
         {
             DiceCap = cap;
         }
+
+        public void SetCoins(int coins)
+        {
+            Coins = System.Math.Max(coins, 0);
+        }
+
+        public void SetDice(int dice)
+        {
+            Dice = System.Math.Clamp(dice, 0, DiceCap);
+        }
     }
 }

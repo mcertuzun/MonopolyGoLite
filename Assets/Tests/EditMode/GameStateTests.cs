@@ -182,6 +182,56 @@ namespace MonopolyLite.Tests
         }
 
         [Test]
+        public void PlayerState_SetCoins_SetsValue()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 100, diceCap: 1000);
+            state.Player.SetCoins(5000);
+            Assert.AreEqual(5000, state.Player.Coins);
+        }
+
+        [Test]
+        public void PlayerState_SetDice_SetsValue()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 100, diceCap: 1000);
+            state.Player.SetDice(750);
+            Assert.AreEqual(750, state.Player.Dice);
+        }
+
+        [Test]
+        public void PlayerState_SetDice_ClampsToCap()
+        {
+            var board = BoardConfigLoader.CreateDefault();
+            var state = new GameState(board, startingDice: 100, diceCap: 500);
+            state.Player.SetDice(999);
+            Assert.AreEqual(500, state.Player.Dice);
+        }
+
+        [Test]
+        public void ProgressionState_LoadMilestones_SetsFromArray()
+        {
+            var progression = new ProgressionState();
+            progression.LoadMilestones(new int[] { 0, 2, 4 });
+            Assert.IsTrue(progression.ClaimedMilestones.Contains(0));
+            Assert.IsTrue(progression.ClaimedMilestones.Contains(2));
+            Assert.IsTrue(progression.ClaimedMilestones.Contains(4));
+            Assert.IsFalse(progression.ClaimedMilestones.Contains(1));
+            Assert.AreEqual(3, progression.ClaimedMilestones.Count);
+        }
+
+        [Test]
+        public void ProgressionState_LoadMultipliers_SetsFromArray()
+        {
+            var progression = new ProgressionState();
+            progression.LoadMultipliers(new int[] { 1, 2, 5 });
+            Assert.IsTrue(progression.IsMultiplierUnlocked(1));
+            Assert.IsTrue(progression.IsMultiplierUnlocked(2));
+            Assert.IsTrue(progression.IsMultiplierUnlocked(5));
+            Assert.IsFalse(progression.IsMultiplierUnlocked(10));
+        }
+
+        [Test]
         public void GameState_TransitionToBoard_ResetsBoardKeepsPlayer()
         {
             var board1 = BoardConfigLoader.CreateDefault();
