@@ -31,7 +31,16 @@ namespace MonopolyLite.Config
                 Debug.Log($"[BoardConfigLoader] '{path}' not found in Resources. Using default Istanbul board.");
             }
 
-            return CreateDefault();
+            return CreateDefaultForBoard(boardId);
+        }
+
+        static BoardDef CreateDefaultForBoard(string boardId)
+        {
+            return boardId switch
+            {
+                "board_02_paris" => CreateParis(),
+                _ => CreateDefault(),
+            };
         }
 
         /// <summary>
@@ -260,6 +269,99 @@ namespace MonopolyLite.Config
                 description = description,
                 amount      = amount,
                 tileIndex   = tileIndex
+            };
+        }
+
+        // ── Paris Board ───────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Returns the Paris-themed 32-tile board (board_02_paris).
+        /// Uses a 1.8x cost multiplier relative to the Istanbul board.
+        /// </summary>
+        public static BoardDef CreateParis()
+        {
+            return new BoardDef
+            {
+                id = "board_02_paris",
+                theme = "Paris",
+                sideLength = 9f,
+                tileSize = 1f,
+                jailTileIndex = 8,
+                goTileIndex = 0,
+                goBonus = 360,
+                boardMultiplier = 1.8f,
+                tiles = new TileDef[]
+                {
+                    new TileDef { name = "GO",               type = TileType.Go,             colorGroup = ColorGroup.None },
+                    new TileDef { name = "Montmartre",        type = TileType.Property,       colorGroup = ColorGroup.Brown,     baseReward = 90 },
+                    new TileDef { name = "Community Chest",   type = TileType.CommunityChest, colorGroup = ColorGroup.None },
+                    new TileDef { name = "Le Marais",         type = TileType.Property,       colorGroup = ColorGroup.Brown,     baseReward = 108 },
+                    new TileDef { name = "Income Tax",        type = TileType.Tax,            colorGroup = ColorGroup.None,      taxAmount = 270 },
+                    new TileDef { name = "Gare du Nord",      type = TileType.Railroad,       colorGroup = ColorGroup.None,      baseReward = 180 },
+                    new TileDef { name = "Belleville",        type = TileType.Property,       colorGroup = ColorGroup.LightBlue, baseReward = 126 },
+                    new TileDef { name = "Chance",            type = TileType.Chance,         colorGroup = ColorGroup.None },
+                    new TileDef { name = "JAIL",              type = TileType.Jail,           colorGroup = ColorGroup.None },
+                    new TileDef { name = "Bastille",          type = TileType.Property,       colorGroup = ColorGroup.LightBlue, baseReward = 144 },
+                    new TileDef { name = "Saint-Germain",     type = TileType.Property,       colorGroup = ColorGroup.Pink,      baseReward = 162 },
+                    new TileDef { name = "Community Chest",   type = TileType.CommunityChest, colorGroup = ColorGroup.None },
+                    new TileDef { name = "Trocadero",         type = TileType.Property,       colorGroup = ColorGroup.Pink,      baseReward = 180 },
+                    new TileDef { name = "Gare de Lyon",      type = TileType.Railroad,       colorGroup = ColorGroup.None,      baseReward = 180 },
+                    new TileDef { name = "Pigalle",           type = TileType.Property,       colorGroup = ColorGroup.Orange,    baseReward = 198 },
+                    new TileDef { name = "Chance",            type = TileType.Chance,         colorGroup = ColorGroup.None },
+                    new TileDef { name = "FREE PARKING",      type = TileType.FreeParking,    colorGroup = ColorGroup.None },
+                    new TileDef { name = "Opera",             type = TileType.Property,       colorGroup = ColorGroup.Orange,    baseReward = 216 },
+                    new TileDef { name = "La Defense",        type = TileType.Property,       colorGroup = ColorGroup.Red,       baseReward = 234 },
+                    new TileDef { name = "Community Chest",   type = TileType.CommunityChest, colorGroup = ColorGroup.None },
+                    new TileDef { name = "Invalides",         type = TileType.Property,       colorGroup = ColorGroup.Red,       baseReward = 252 },
+                    new TileDef { name = "Gare Montparnasse", type = TileType.Railroad,       colorGroup = ColorGroup.None,      baseReward = 180 },
+                    new TileDef { name = "Latin Quarter",     type = TileType.Property,       colorGroup = ColorGroup.Yellow,    baseReward = 270 },
+                    new TileDef { name = "Chance",            type = TileType.Chance,         colorGroup = ColorGroup.None },
+                    new TileDef { name = "GO TO JAIL",        type = TileType.GoToJail,       colorGroup = ColorGroup.None },
+                    new TileDef { name = "Ile de la Cite",    type = TileType.Property,       colorGroup = ColorGroup.Yellow,    baseReward = 288 },
+                    new TileDef { name = "Seine River",       type = TileType.Property,       colorGroup = ColorGroup.Green,     baseReward = 306 },
+                    new TileDef { name = "Luxury Tax",        type = TileType.Tax,            colorGroup = ColorGroup.None,      taxAmount = 360 },
+                    new TileDef { name = "Champs-Elysees",    type = TileType.Property,       colorGroup = ColorGroup.Green,     baseReward = 324 },
+                    new TileDef { name = "Gare Saint-Lazare", type = TileType.Railroad,       colorGroup = ColorGroup.None,      baseReward = 180 },
+                    new TileDef { name = "Louvre",            type = TileType.Property,       colorGroup = ColorGroup.Blue,      baseReward = 342 },
+                    new TileDef { name = "Eiffel Tower",      type = TileType.Property,       colorGroup = ColorGroup.Blue,      baseReward = 360 },
+                },
+                landmarks = new LandmarkDef[]
+                {
+                    new LandmarkDef { colorGroup = ColorGroup.Brown,     name = "Sacre-Coeur",        costs = new int[] { 180, 360, 540, 720, 900 },       nwPoints = new int[] { 90, 216, 360, 522, 720 } },
+                    new LandmarkDef { colorGroup = ColorGroup.LightBlue, name = "Place des Vosges",   costs = new int[] { 270, 540, 810, 1080, 1350 },     nwPoints = new int[] { 135, 324, 540, 783, 1080 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Pink,      name = "Musee d'Orsay",      costs = new int[] { 360, 720, 1080, 1440, 1800 },    nwPoints = new int[] { 180, 432, 720, 1044, 1440 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Orange,    name = "Palais Garnier",     costs = new int[] { 450, 900, 1350, 1800, 2250 },    nwPoints = new int[] { 225, 540, 900, 1305, 1800 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Red,       name = "Notre-Dame",         costs = new int[] { 540, 1080, 1620, 2160, 2700 },   nwPoints = new int[] { 270, 648, 1080, 1566, 2160 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Yellow,    name = "Arc de Triomphe",    costs = new int[] { 630, 1260, 1890, 2520, 3150 },   nwPoints = new int[] { 315, 756, 1260, 1827, 2520 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Green,     name = "Versailles",         costs = new int[] { 720, 1440, 2160, 2880, 3600 },   nwPoints = new int[] { 360, 864, 1440, 2088, 2880 } },
+                    new LandmarkDef { colorGroup = ColorGroup.Blue,      name = "Eiffel Tower",       costs = new int[] { 900, 1800, 2700, 3600, 4500 },   nwPoints = new int[] { 450, 1080, 1800, 2610, 3600 } },
+                },
+                chanceCards = new CardDef[]
+                {
+                    new CardDef { type = CardType.GainCoins, description = "Cafe tips!",            amount = 270 },
+                    new CardDef { type = CardType.GainCoins, description = "Street art sale",        amount = 450 },
+                    new CardDef { type = CardType.LoseCoins, description = "Parking fine",           amount = 180 },
+                    new CardDef { type = CardType.GainDice,  description = "Metro pass found",       amount = 10 },
+                    new CardDef { type = CardType.GoToJail,  description = "Caught jaywalking!",     amount = 0, tileIndex = 8 },
+                    new CardDef { type = CardType.GoToTile,  description = "Advance to GO",          amount = 0, tileIndex = 0 },
+                    new CardDef { type = CardType.GainShield, description = "Beret of protection",   amount = 1 },
+                    new CardDef { type = CardType.GainCoins, description = "Boulangerie bonus",      amount = 360 },
+                    new CardDef { type = CardType.LoseCoins, description = "Restaurant bill",        amount = 270 },
+                    new CardDef { type = CardType.GainDice,  description = "Bicycle rental refund",  amount = 15 },
+                },
+                communityChestCards = new CardDef[]
+                {
+                    new CardDef { type = CardType.GainCoins, description = "Wine festival prize",    amount = 360 },
+                    new CardDef { type = CardType.GainCoins, description = "Art auction earnings",   amount = 540 },
+                    new CardDef { type = CardType.LoseCoins, description = "Museum donation",        amount = 180 },
+                    new CardDef { type = CardType.GainDice,  description = "Seine cruise tickets",   amount = 8 },
+                    new CardDef { type = CardType.GainCoins, description = "Fashion week bonus",     amount = 270 },
+                    new CardDef { type = CardType.LoseCoins, description = "Champagne expense",      amount = 135 },
+                    new CardDef { type = CardType.GainShield, description = "Croissant shield",      amount = 1 },
+                    new CardDef { type = CardType.GoToTile,  description = "Go to Eiffel Tower",     amount = 0, tileIndex = 31 },
+                    new CardDef { type = CardType.GainDice,  description = "Louvre VIP pass",        amount = 12 },
+                    new CardDef { type = CardType.GainCoins, description = "Perfume sales",          amount = 180 },
+                },
             };
         }
     }
