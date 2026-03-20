@@ -1,6 +1,7 @@
 using MonopolyLite.Core;
 using MonopolyLite.Data;
 using MonopolyLite.Logic;
+using MonopolyLite.State;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,6 +44,9 @@ namespace MonopolyLite.View
             controller.OnHeistResolved += HandleHeistResolved;
             controller.OnShutdownStarted += HandleShutdownStarted;
             controller.OnShutdownResolved += HandleShutdownResolved;
+            controller.OnMissionCompleted += HandleMissionCompleted;
+            controller.OnAllMissionsCompleted += HandleAllMissionsCompleted;
+            controller.OnStickerGranted += HandleStickerGranted;
 
             RefreshStats();
         }
@@ -226,6 +230,24 @@ namespace MonopolyLite.View
                 _statusLabel.text = $"Shutdown blocked by shield! +{result.CoinsEarned}";
             else
                 _statusLabel.text = $"SHUTDOWN on {result.TargetName}! +{result.CoinsEarned}";
+            RefreshStats();
+        }
+
+        void HandleMissionCompleted(MissionProgress mission)
+        {
+            _statusLabel.text = $"Mission complete: {mission.Description}!";
+            RefreshStats();
+        }
+
+        void HandleAllMissionsCompleted()
+        {
+            _statusLabel.text = "All daily missions complete! Bonus claimed!";
+            RefreshStats();
+        }
+
+        void HandleStickerGranted(int stickerId)
+        {
+            _statusLabel.text = $"New sticker! (ID: {stickerId})";
             RefreshStats();
         }
 
