@@ -1,11 +1,7 @@
 {
-    "name": "MonopolyLite",
-    "rootNamespace": "MonopolyLite",
-    "references": [
-        "Unity.TextMeshPro",
-        "UnityEngine.UI",
-        "Reusable"
-    ],
+    "name": "Reusable",
+    "rootNamespace": "",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -2,7 +2,8 @@
     "name": "EditModeTests",
     "rootNamespace": "MonopolyLite.Tests",
     "references": [
-        "MonopolyLite"
+        "MonopolyLite",
+        "Reusable"
     ],
     "includePlatforms": [
         "Editor"
