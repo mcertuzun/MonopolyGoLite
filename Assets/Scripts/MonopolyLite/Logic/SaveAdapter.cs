@@ -55,6 +55,42 @@ namespace MonopolyLite.Logic
                 data.shutdownsDealt = state.Stats.ShutdownsDealt;
             }
 
+            // Missions
+            if (state.MissionState != null)
+            {
+                data.missionDate = state.MissionState.Date;
+                data.missionBonusClaimed = state.MissionState.BonusClaimed;
+                if (state.MissionState.Missions != null)
+                {
+                    data.missions = new MissionSaveEntry[state.MissionState.Missions.Length];
+                    for (int i = 0; i < state.MissionState.Missions.Length; i++)
+                    {
+                        var m = state.MissionState.Missions[i];
+                        data.missions[i] = new MissionSaveEntry
+                        {
+                            type = (int)m.Type,
+                            description = m.Description,
+                            target = m.Target,
+                            progress = m.Progress,
+                            coinReward = m.CoinReward,
+                            diceReward = m.DiceReward,
+                        };
+                    }
+                }
+            }
+
+            // Stickers
+            if (state.StickerState != null)
+            {
+                data.duplicateStars = state.StickerState.DuplicateStars;
+                var entries = new System.Collections.Generic.List<StickerSaveEntry>();
+                foreach (var kvp in state.StickerState.OwnedStickers)
+                {
+                    entries.Add(new StickerSaveEntry { stickerId = kvp.Key, count = kvp.Value });
+                }
+                data.ownedStickers = entries.ToArray();
+            }
+
             return data;
         }
 
@@ -95,6 +131,37 @@ namespace MonopolyLite.Logic
                 state.Stats.BoardsCompleted = data.boardsCompleted;
                 state.Stats.HeistsCompleted = data.heistsCompleted;
                 state.Stats.ShutdownsDealt = data.shutdownsDealt;
+            }
+
+            // Missions
+            if (state.MissionState != null)
+            {
+                state.MissionState.Date = data.missionDate;
+                state.MissionState.BonusClaimed = data.missionBonusClaimed;
+                if (data.missions != null)
+                {
+                    state.MissionState.Missions = new MissionProgress[data.missions.Length];
+                    for (int i = 0; i < data.missions.Length; i++)
+                    {
+                        var m = data.missions[i];
+                        state.MissionState.Missions[i] = new MissionProgress
+                        {
+                            Type = (MissionType)m.type,
+                            Description = m.description,
+                            Target = m.target,
+                            Progress = m.progress,
+                            CoinReward = m.coinReward,
+                            DiceReward = m.diceReward,
+                        };
+                    }
+                }
+            }
+
+            // Stickers
+            if (state.StickerState != null)
+            {
+                state.StickerState.DuplicateStars = data.duplicateStars;
+                state.StickerState.LoadFromEntries(data.ownedStickers);
             }
         }
     }
