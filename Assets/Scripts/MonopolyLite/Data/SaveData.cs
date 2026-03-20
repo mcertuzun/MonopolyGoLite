@@ -34,5 +34,14 @@ namespace MonopolyLite.Data
         public int boardsCompleted;
         public int heistsCompleted;
         public int shutdownsDealt;
+
+        // Missions
+        public string missionDate;
+        public MissionSaveEntry[] missions;
+        public bool missionBonusClaimed;
+
+        // Stickers
+        public StickerSaveEntry[] ownedStickers;
+        public int duplicateStars;
     }
 }
