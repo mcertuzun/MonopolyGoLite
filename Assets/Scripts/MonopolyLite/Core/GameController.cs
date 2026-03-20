@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using MonopolyLite.Config;
 using MonopolyLite.Data;
+using MonopolyLite.Events;
 using MonopolyLite.Logic;
 using MonopolyLite.State;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace MonopolyLite.Core
     {
         public GameState State { get; private set; }
         public BoardDef BoardDef { get; private set; }
+        public IEventBus Bus { get; private set; }
 
         DiceSystem _diceSystem;
         MovementSystem _movementSystem;
@@ -64,6 +66,8 @@ namespace MonopolyLite.Core
 
         public void Initialize(string boardId = null)
         {
+            Bus = new EventBus();
+
             _progressionDef = ProgressionConfigLoader.CreateDefault();
             _saveService = new LocalSaveService();
             bool isLoadedFromSave = _saveService.HasSave();
@@ -148,6 +152,7 @@ namespace MonopolyLite.Core
             if (_saveService == null) return;
             var data = SaveAdapter.ToSaveData(State);
             _saveService.Save(data);
+            Bus.Publish(new GameSavedEvent());
         }
 
         void Update()
@@ -173,7 +178,9 @@ namespace MonopolyLite.Core
                     var moveResult = _movementSystem.Move(State, jailRoll.Total);
                     var tileResult = _tileResolver.Resolve(State);
                     OnRollComplete?.Invoke(jailRoll, moveResult);
+                    Bus.Publish(new RollEvent { Die1 = jailRoll.Die1, Die2 = jailRoll.Die2, Total = jailRoll.Total, IsDoubles = jailRoll.IsDoubles, PassedGo = moveResult.PassedGo });
                     OnTileResolved?.Invoke(tileResult);
+                    Bus.Publish(new TileEvent { Type = tileResult.Type, Amount = tileResult.Amount, DrawnCard = tileResult.DrawnCard });
                     State.Stats.TotalRolls++;
                     TrackMission(MissionType.RollDice, 1);
                     AutoSave();
@@ -196,9 +203,11 @@ namespace MonopolyLite.Core
 
             var move = _movementSystem.Move(State, roll.Total);
             OnRollComplete?.Invoke(roll, move);
+            Bus.Publish(new RollEvent { Die1 = roll.Die1, Die2 = roll.Die2, Total = roll.Total, IsDoubles = roll.IsDoubles, PassedGo = move.PassedGo });
 
             var resolve = _tileResolver.Resolve(State);
             OnTileResolved?.Invoke(resolve);
+            Bus.Publish(new TileEvent { Type = resolve.Type, Amount = resolve.Amount, DrawnCard = resolve.DrawnCard });
             State.Stats.TotalRolls++;
             if (resolve.Type == TileResolveType.CoinsGained)
                 State.Stats.TotalCoinsEarned += resolve.Amount;
@@ -218,6 +227,7 @@ namespace MonopolyLite.Core
             {
                 int level = State.Board.GetLandmarkLevel(group);
                 OnLandmarkUpgraded?.Invoke(group, level);
+                Bus.Publish(new LandmarkUpgradedEvent { Group = group, NewLevel = level });
                 TrackMission(MissionType.BuildLandmark, 1);
                 GrantSticker();
                 AutoSave();
@@ -232,6 +242,7 @@ namespace MonopolyLite.Core
                 if (_landmarkSystem.IsBoardComplete(State))
                 {
                     OnBoardComplete?.Invoke();
+                    Bus.Publish(new BoardCompleteEvent());
                     TryTransitionToNextBoard();
                 }
             }
@@ -254,6 +265,7 @@ namespace MonopolyLite.Core
 
             State.Stats.BoardsCompleted++;
             OnBoardTransition?.Invoke(nextBoardId);
+            Bus.Publish(new BoardTransitionEvent { NewBoardId = nextBoardId, Theme = BoardDef.theme });
         }
 
         public void SetMultiplier(int value)
@@ -294,12 +306,14 @@ namespace MonopolyLite.Core
                 TrackMission(MissionType.EarnCoins, result.CoinsEarned);
                 AutoSave();
                 OnHeistResolved?.Invoke(result, target);
+                Bus.Publish(new HeistEvent { Result = result, TargetName = target.displayName });
             }
             else
             {
                 _pendingShutdownTarget = target;
                 _awaitingShutdownChoice = true;
                 OnShutdownStarted?.Invoke(target);
+                Bus.Publish(new ShutdownStartEvent { Target = target });
             }
         }
 
@@ -319,6 +333,7 @@ namespace MonopolyLite.Core
             _pendingShutdownTarget = null;
             _awaitingShutdownChoice = false;
             OnShutdownResolved?.Invoke(result);
+            Bus.Publish(new ShutdownResolveEvent { Result = result });
         }
 
         public void DoSkipShutdown()
