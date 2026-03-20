@@ -32,6 +32,11 @@ namespace MonopolyLite.Core
         TargetProfile _pendingShutdownTarget;
         bool _awaitingShutdownChoice;
 
+        MissionSystem _missionSystem;
+        StickerSystem _stickerSystem;
+        MissionDef[] _missionPool;
+        AlbumDef _albumDef;
+
         ISaveService _saveService;
 
         public event System.Action<RollResult, MoveResult> OnRollComplete;
@@ -47,6 +52,10 @@ namespace MonopolyLite.Core
         public event System.Action<HeistResult, TargetProfile> OnHeistResolved;
         public event System.Action<TargetProfile> OnShutdownStarted;
         public event System.Action<ShutdownResult> OnShutdownResolved;
+
+        public event System.Action<MissionProgress> OnMissionCompleted;
+        public event System.Action OnAllMissionsCompleted;
+        public event System.Action<int> OnStickerGranted;
 
         const int StartingDice = 100;
         const int DiceCap = 1000;
@@ -100,6 +109,11 @@ namespace MonopolyLite.Core
             _railroadRng = new RNG((uint)(RngSeed + 300));
             _awaitingShutdownChoice = false;
 
+            _missionPool = MissionConfigLoader.CreateDefaultPool();
+            _albumDef = StickerConfigLoader.CreateDefault();
+            _missionSystem = new MissionSystem(_missionPool, RngSeed + 400);
+            _stickerSystem = new StickerSystem(RngSeed + 500);
+
             // Only apply initial milestones for fresh games (not loaded)
             if (!isLoadedFromSave)
             {
@@ -115,6 +129,16 @@ namespace MonopolyLite.Core
             if (dailyReward.HasValue)
             {
                 OnDailyRewardClaimed?.Invoke(dailyReward.Value);
+                AutoSave();
+            }
+
+            // Daily mission reset
+            string missionToday = System.DateTime.UtcNow.ToString("yyyy-MM-dd");
+            if (State.MissionState.Date != missionToday)
+            {
+                State.MissionState.Date = missionToday;
+                State.MissionState.Missions = _missionSystem.GenerateDaily(4);
+                State.MissionState.BonusClaimed = false;
                 AutoSave();
             }
         }
@@ -151,6 +175,7 @@ namespace MonopolyLite.Core
                     OnRollComplete?.Invoke(jailRoll, moveResult);
                     OnTileResolved?.Invoke(tileResult);
                     State.Stats.TotalRolls++;
+                    TrackMission(MissionType.RollDice, 1);
                     AutoSave();
                     if (tileResult.Type == TileResolveType.Railroad)
                         HandleRailroadEvent();
@@ -160,6 +185,7 @@ namespace MonopolyLite.Core
                     _jailSystem.TickJailTurn(State);
                     OnRollComplete?.Invoke(jailRoll, default);
                     State.Stats.TotalRolls++;
+                    TrackMission(MissionType.RollDice, 1);
                     AutoSave();
                 }
                 return;
@@ -176,6 +202,9 @@ namespace MonopolyLite.Core
             State.Stats.TotalRolls++;
             if (resolve.Type == TileResolveType.CoinsGained)
                 State.Stats.TotalCoinsEarned += resolve.Amount;
+            TrackMission(MissionType.RollDice, 1);
+            if (resolve.Type == TileResolveType.CoinsGained)
+                TrackMission(MissionType.EarnCoins, resolve.Amount);
             AutoSave();
             if (resolve.Type == TileResolveType.Railroad)
                 HandleRailroadEvent();
@@ -189,6 +218,8 @@ namespace MonopolyLite.Core
             {
                 int level = State.Board.GetLandmarkLevel(group);
                 OnLandmarkUpgraded?.Invoke(group, level);
+                TrackMission(MissionType.BuildLandmark, 1);
+                GrantSticker();
                 AutoSave();
 
                 if (State.Progression != null)
@@ -259,6 +290,8 @@ namespace MonopolyLite.Core
                 State.Player.AddCoins(result.CoinsEarned);
                 State.Stats.HeistsCompleted++;
                 State.Stats.TotalCoinsEarned += result.CoinsEarned;
+                TrackMission(MissionType.CompleteHeist, 1);
+                TrackMission(MissionType.EarnCoins, result.CoinsEarned);
                 AutoSave();
                 OnHeistResolved?.Invoke(result, target);
             }
@@ -281,6 +314,7 @@ namespace MonopolyLite.Core
             State.Player.AddCoins(result.CoinsEarned);
             State.Stats.ShutdownsDealt++;
             State.Stats.TotalCoinsEarned += result.CoinsEarned;
+            TrackMission(MissionType.EarnCoins, result.CoinsEarned);
             AutoSave();
             _pendingShutdownTarget = null;
             _awaitingShutdownChoice = false;
@@ -291,6 +325,39 @@ namespace MonopolyLite.Core
         {
             _pendingShutdownTarget = null;
             _awaitingShutdownChoice = false;
+        }
+
+        void TrackMission(MissionType type, int amount)
+        {
+            if (State.MissionState?.Missions == null) return;
+            _missionSystem.TrackProgress(State.MissionState.Missions, type, amount);
+
+            foreach (var m in State.MissionState.Missions)
+            {
+                if (m.Completed && m.Progress - amount < m.Target)
+                {
+                    State.Player.AddCoins(m.CoinReward);
+                    State.Player.AddDice(m.DiceReward);
+                    OnMissionCompleted?.Invoke(m);
+                }
+            }
+
+            if (!State.MissionState.BonusClaimed && _missionSystem.AllCompleted(State.MissionState.Missions))
+            {
+                State.MissionState.BonusClaimed = true;
+                State.Player.AddCoins(2000);
+                State.Player.AddDice(100);
+                for (int i = 0; i < 3; i++)
+                    GrantSticker();
+                OnAllMissionsCompleted?.Invoke();
+            }
+        }
+
+        void GrantSticker()
+        {
+            if (_albumDef == null || State.StickerState == null) return;
+            int id = _stickerSystem.GrantRandom(State.StickerState, _albumDef);
+            OnStickerGranted?.Invoke(id);
         }
     }
 }
